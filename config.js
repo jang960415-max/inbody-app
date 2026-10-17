@@ -196,8 +196,9 @@ const CONFIG = {
     shortWarmup: 5,      // 운동 시간이 아주 짧을 때 몸풀기 (분)
     cooldown: 5,         // 마무리 스트레칭 (분)
     strengthPerExercise: 7,   // 맨몸 근력 운동 하나 (3~4세트) 시간 (분)
-    circuitRound: 5,          // 서킷 한 바퀴 (5가지 × 1분) 시간 (분)
-    maxCircuitRounds: 4,      // 서킷은 최대 몇 바퀴까지 (남는 시간은 빠르게 걷기)
+    circuitRound: 6.5,        // 서킷 한 바퀴 (6가지 × 40초 운동 + 15초 쉬기, 바퀴 사이 1분) 시간 (분) — [헬마드]
+    maxCircuitRounds: 3,      // 서킷은 최대 몇 바퀴까지 (약 20분, 남는 시간은 빠르게 걷기) — [헬마드]
+    hiitMinutes: 25,          // 인터벌 한 번 (몸풀기 5 + 8번 × 2분 + 정리 4) — [헬마드]
     powerMinutes: 15          // 파워 운동은 집중해서 최대 몇 분 (남는 시간은 가볍게)
   },
 

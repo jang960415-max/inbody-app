@@ -17,7 +17,7 @@ const STAGE_NAME = { base: '기초 체력', strength: '힘 기르기', power: '�
 const EMPHASIS_NAME = { low: '낮음', mid: '보통', high: '높음' };
 const BLOCK_NAME = {
   upper: '맨몸 상체 근력', lower: '맨몸 하체 근력', core: '맨몸 코어',
-  cond: '맨몸 체중 감량 서킷', condLow: '관절 부담 적은 서킷', power: '맨몸 파워·구속',
+  cond: '맨몸 체중 감량 서킷', condLow: '관절 부담 적은 서킷', power: '맨몸 파워·구속', hiit: '인터벌 (HIIT)',
   light: '가볍게 걷기·몸 풀기', walk: '빠르게 걷기'
 };
 
@@ -426,15 +426,21 @@ function chooseBlockKinds(type, s, vel, count) {
 
   const injured = myInjuries(s);
   const legsHurt = injured.includes('knee') || injured.includes('ankle');
-  let list = { lower: ['upper', 'core', 'cond'], upper: ['lower', 'cond', 'core'], rotation: ['cond', 'upper', 'lower'] }[type].slice();
+  const lose = s.weightGoal === 'lose';
+  // 하체 날은 다리를 이미 많이 써서 관절 부담 적은 서킷만 (인터벌은 넣지 않아요 — [헬마드] 영상 11)
+  // 체중 줄이기면 상체 날·몸통 회전 날에 인터벌을 넣어서 주 2번이 돼요
+  let list = {
+    lower:    ['condLow', 'upper', 'core'],
+    upper:    lose ? ['hiit', 'lower', 'core'] : ['lower', 'core', 'cond'],
+    rotation: lose ? ['hiit', 'upper', 'core'] : ['cond', 'upper', 'lower']
+  }[type].slice();
 
   const moveTo = (kind, index) => {
     const at = list.indexOf(kind);
     if (at >= 0) { list.splice(at, 1); list.splice(index, 0, kind); }
   };
   const strengthKind = list.find(k => k === 'upper' || k === 'lower');
-  if (s.weightGoal === 'lose') moveTo('cond', 0);                        // 체중 줄이기 → 서킷 먼저
-  if (s.muscleGoal === 'gain') moveTo(strengthKind, s.weightGoal === 'lose' ? 1 : 0);   // 근육 늘리기 → 근력
+  if (s.muscleGoal === 'gain') moveTo(strengthKind, lose ? 1 : 0);   // 근육 늘리기 → 근력을 앞쪽에
 
   // 구속 목표: 파워·구속 단계에는 몸통 회전 날·상체 날 맨 앞에 파워 운동을 넣어요
   const powerDay = type === 'rotation' || type === 'upper' || (vel.emphasis === 'high' && type === 'lower');
@@ -442,10 +448,16 @@ function chooseBlockKinds(type, s, vel, count) {
     list.unshift('power');
   }
 
-  // 하체를 많이 쓴 날이나 무릎·발목이 불편하면 관절 부담 적은 서킷으로
-  list = list.map(k => (k === 'cond' && (type === 'lower' || legsHurt)) ? 'condLow' : k);
-  while (list.length < count) list.push(list.length % 2 ? 'walk' : (legsHurt ? 'condLow' : 'cond'));
+  // 무릎·발목이 불편하면 점프 있는 서킷 대신 관절 부담 적은 서킷으로
+  list = list.map(k => (k === 'cond' && legsHurt) ? 'condLow' : k);
+  while (list.length < count) list.push(list.length % 2 ? 'walk' : 'condLow');
   return list.slice(0, count);
+}
+
+// 맨몸 근력 운동의 이번 주 방법 (2주마다 바꿔요) — [헬마드]
+function bodyweightMethod(dateKey) {
+  const weeks = Math.max(0, Math.floor(daysBetween(workoutPlan.start, dateKey) / 7));
+  return BW_METHODS[Math.floor(weeks / 2) % BW_METHODS.length];
 }
 
 function bodyweightPool(kind, s) {
@@ -462,33 +474,61 @@ function bodyweightPool(kind, s) {
 }
 
 function walkItem(id, minutes, s) {
-  return { id: id, name: s.weightGoal === 'lose' ? '빠르게 걷기 (숨이 조금 차는 정도)' : '가볍게 걷기', min: Math.round(minutes) };
+  return { id: id, min: Math.round(minutes),
+    name: s.weightGoal === 'lose' ? '빠르게 걷기 (숨이 조금 차는 정도 · 식후 10~15분씩 나눠 걸어도 돼요)' : '가볍게 걷기' };
 }
 
-// 묶음 하나 만들기 (minutes 분 안에 맞춰요)
+// 묶음 하나 만들기 (minutes 분 안에 맞춰요) → { items, note }
 function buildBlock(kind, minutes, s, vel, dateKey, prefix) {
   const T = CONFIG.workoutTime;
   const items = [];
+  let note = '';
   const dayNum = daysBetween('2000-01-01', dateKey);   // 날마다 운동 순서를 조금씩 바꾸려고
   const rotate = (arr, n) => arr.length ? arr.map((_, i) => arr[(i + n) % arr.length]) : arr;
   let used = 0;
 
+  // 인터벌은 시간이 충분할 때만 (모자라면 관절 부담 적은 서킷으로)
+  if (kind === 'hiit' && minutes < T.hiitMinutes) kind = 'condLow';
+
   if (kind === 'upper' || kind === 'lower' || kind === 'core') {
-    const pool = rotate(bodyweightPool(kind, s), dayNum);
-    const sets = vel.stage === 'strength' ? 4 : 3;
-    const count = Math.min(pool.length, Math.max(1, Math.floor(minutes / T.strengthPerExercise)), 6);
-    pool.slice(0, count).forEach(e => {
-      items.push(Object.assign({}, e, { id: prefix + e.id, sets: sets, rest: '45초', min: T.strengthPerExercise,
-        tempo: vel.stage === 'strength' ? '힘 기르기 단계: 3초 천천히 내려가고 아래에서 1초 멈추기' : '' }));
-      used += T.strengthPerExercise;
+    // 슈퍼세트 짝(pair)은 떨어지지 않게 묶어서 순서를 돌려요 — [헬마드] 영상 3·8
+    const units = [];
+    bodyweightPool(kind, s).forEach(e => {
+      const last = units[units.length - 1];
+      if (e.pair && last && last[0].pair === e.pair) last.push(e); else units.push([e]);
     });
+    const method = bodyweightMethod(dateKey);
+    const sets = vel.stage === 'strength' ? 4 : 3;
+    const maxCount = Math.min(6, Math.max(1, Math.floor(minutes / T.strengthPerExercise)));
+    rotate(units, dayNum).forEach(unit => {
+      if (items.length >= maxCount && items.length > 0) return;
+      unit.forEach((e, i) => {
+        const paired = unit.length > 1;
+        items.push(Object.assign({}, e, {
+          id: prefix + e.id,
+          name: (paired ? e.pair + (i + 1) + '. ' : '') + e.name,
+          sets: sets,
+          reps: e.reps || '최대 횟수의 80~90% (2~3개 남기고)',
+          rest: paired ? (i === 0 ? '없이 바로 ' + e.pair + '2로' : '1분 30초') : method.rest,
+          min: T.strengthPerExercise
+        }));
+        used += T.strengthPerExercise;
+      });
+    });
+    note = '[헬마드] 이번 주 방법: <b>' + method.label + '</b> — ' + method.tip
+      + (items.some(i => i.pair) ? ' 같은 글자(A1·A2)는 쉬지 않고 이어서 해요.' : '')
+      + (vel.stage === 'strength' ? ' (힘 기르기 단계라 4세트)' : '');
   } else if (kind === 'cond' || kind === 'condLow') {
     let pool = bodyweightPool(kind, s);
     if (pool.length < 3) pool = bodyweightPool('condLow', s);
-    const rounds = Math.max(1, Math.min(T.maxCircuitRounds, Math.floor(minutes * 0.6 / T.circuitRound)));
-    items.push({ id: prefix + 'circuit', name: '맨몸 서킷 ' + rounds + '바퀴', reps: '동작마다 40초 운동 + 20초 쉬기',
-      min: rounds * T.circuitRound, steps: pool.slice(0, 5).map(e => e.name), key: true });
+    const rounds = Math.max(1, Math.min(T.maxCircuitRounds, Math.floor(minutes * 0.7 / T.circuitRound)));
+    items.push({ id: prefix + 'circuit', name: '맨몸 서킷 ' + rounds + '바퀴', reps: '동작마다 40초 운동 + 15초 쉬기, 바퀴 사이 1분 쉬기',
+      min: Math.round(rounds * T.circuitRound), steps: pool.slice(0, 6).map(e => e.name), key: true });
     used += rounds * T.circuitRound;
+    note = '[헬마드] 움직이는 동작과 버티는 동작을 번갈아 해서 근육이 오래 일하게 해요. 체지방은 한 번 세게보다 꾸준한 총량이 중요해요.';
+  } else if (kind === 'hiit') {
+    BODYWEIGHT.hiit.forEach(e => { items.push(Object.assign({}, e, { id: prefix + e.id })); used += e.min; });
+    note = '[헬마드] 인터벌은 주 2번까지만 해요. 하체 날과 투구 전날·다음 날에는 넣지 않았어요.';
   } else if (kind === 'power') {
     const pool = rotate(bodyweightPool('power', s), dayNum);
     const sets = vel.emphasis === 'high' ? 4 : 3;
@@ -504,13 +544,13 @@ function buildBlock(kind, minutes, s, vel, dateKey, prefix) {
     });
   }
 
-  // 남는 시간은 걷기로 채워요 (투구 전날·가벼운 날은 가볍게)
-  const left = minutes - used;
+  // 남는 시간은 걷기로 채워요 (투구 전날·가벼운 날은 가볍게) — [헬마드] 영상 10: 걷기를 늘리기
+  const left = Math.floor(minutes - used);
   if (left >= 3 || items.length === 0) {
     const w = walkItem(prefix + 'walk', Math.max(left, 1), kind === 'light' ? Object.assign({}, s, { weightGoal: 'keep' }) : s);
     items.push(w);
   }
-  return items;
+  return { items: items, note: note, kind: kind };
 }
 
 
@@ -567,8 +607,9 @@ function generateDayPlan(dateKey, version) {
   kinds.forEach((kind, i) => {
     const n = baseBlocks + i + 1;
     const isLast = n === blockCount;
-    blocks.push({ label: n + '세트 · ' + BLOCK_NAME[kind], kind: kind, minutes: blockMin,
-                  items: buildBlock(kind, blockMin - (isLast ? T.cooldown : 0), s, vel, dateKey, 'b' + n + '-') });
+    const built = buildBlock(kind, blockMin - (isLast ? T.cooldown : 0), s, vel, dateKey, 'b' + n + '-');
+    blocks.push({ label: n + '세트 · ' + BLOCK_NAME[built.kind], kind: built.kind, minutes: blockMin,
+                  items: built.items, note: built.note });
   });
 
   // ③ 마지막은 꼭 스트레칭
@@ -809,6 +850,7 @@ function renderDayCard(day) {
     ? '<p class="metric-text">오늘은 쉬는 날이에요.</p>'
     : p.blocks.map(b => '<div class="ex-block"><div class="ex-block-head">' + b.label
         + (b.minutes ? '<span>약 ' + b.minutes + '분</span>' : '') + '</div>'
+        + (b.note ? '<p class="ex-block-note">' + b.note + '</p>' : '')
         + '<ul class="ex-list">' + b.items.map(item => renderExercise(item, day.dateKey)).join('') + '</ul></div>').join('');
 
   const tipsHtml = p.session.tips.length ? '<ul class="ex-tips">' + p.session.tips.map(t => '<li>' + t + '</li>').join('') + '</ul>' : '';
@@ -876,7 +918,9 @@ function renderAppliedCard() {
     + ' — 없는 장비가 필요한 운동은 "대체" 운동으로 바꿨어요.');
   lines.push(injured.length ? '불편한 부위(' + injured.map(i => BODY_NAME[i]).join(', ') + ')에 부담이 가는 운동은 뺐어요.'
                             : '불편한 부위가 없어서 빼는 운동은 없어요.');
-  if (s.weightGoal === 'lose') lines.push('체중 줄이기 목표 → 남는 세트에 맨몸 서킷을 먼저 넣고, 회복 날 걷기를 늘렸어요.');
+  if (s.weightGoal === 'lose') lines.push('체중 줄이기 목표 → 상체 날·몸통 회전 날에 인터벌(주 2번), 하체 날에 관절 부담 적은 서킷을 넣고, 남는 시간과 회복 날은 걷기로 채워요. [헬마드]');
+  lines.push('맨몸 운동은 [헬마드] 최근 6개월 영상 12개를 정리한 원칙을 따라요: 한 세트는 최대 횟수의 80~90%까지, 밀기+당기기 슈퍼세트, '
+    + '움직이는 동작↔버티는 동작 서킷, 2주마다 방법 바꾸기(횟수 → 템포 → 난이도). 딥스·머리 위 동작은 투수 어깨 때문에 뺐어요. 자세한 내용: 헬마드_맨몸운동_정리.md');
   if (s.muscleGoal === 'gain') lines.push('근육 늘리기 목표 → 남는 세트에 맨몸 근력 운동을 넣고, "힘 기르기" 단계에는 4세트·천천히 내려가기로 해요.');
   lines.push('구속 목표 → 기간을 기초 체력 → 힘 기르기 → 파워·구속 단계로 나눠요. 파워·구속 단계에는 몸통 회전 날과 상체 날 남는 세트 맨 앞에 맨몸 폭발력 운동을 넣어요. '
     + '목표까지 차이가 클수록 파워·구속 단계를 일찍 시작해요.');
@@ -892,7 +936,7 @@ function renderAppliedCard() {
     + '<summary><b>📋 입력값과 자료를 이렇게 반영했어요</b></summary>'
     + '<ul class="applied-list">' + lines.map(l => '<li>' + l + '</li>').join('') + '</ul>'
     + '<p class="label" style="margin-top:12px">계획 변경 기록</p><ul class="applied-list">' + history + '</ul>'
-    + '<p class="footnote">[계획표] 사회인야구 투수 비시즌 주간 운동계획표 · [능력] 투수에게 필요한 운동능력과 훈련법</p>'
+    + '<p class="footnote">[계획표] 사회인야구 투수 비시즌 주간 운동계획표 · [능력] 투수에게 필요한 운동능력과 훈련법 · [헬마드] 유튜브 헬마드(헬스 건강 정보) 최근 6개월 영상</p>'
     + '</details>';
 }
 

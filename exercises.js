@@ -210,50 +210,67 @@ const HARDER_TIPS = [
 
 // =====================================================================
 //  🏃 맨몸 운동 (야구 운동 뒤 남는 시간에 넣어요)
+//  [헬마드] 유튜브 헬마드(헬스 건강 정보) 최근 6개월 영상 정리 → 헬마드_맨몸운동_정리.md
+//   - 한 세트는 "최대 횟수의 80~90%" (2~3개 남기고)까지 — 한계 가까이 해야 맨몸으로도 근육이 커져요
+//   - 밀기+당기기는 쉬지 않고 붙여서(슈퍼세트), 서킷은 움직이는 동작과 버티는 동작을 번갈아
+//   - 2~3주마다 자극 바꾸기 (횟수 → 템포 → 쉬는 시간·난이도·가방 무게)
+//   - 딥스·머리 위로 드는 동작은 투수 어깨에 부담이라 넣지 않았어요 — [능력]
 //  easy : 운동 경험이 "처음"일 때 대신 쓰는 쉬운 버전
+//  pair : 같은 글자끼리 슈퍼세트 (쉬지 않고 이어서)
 // =====================================================================
 const BODYWEIGHT = {
-  // 상체 힘 (머리 위로 드는 운동은 투수 어깨에 부담이 될 수 있어 넣지 않았어요 — [능력])
+  // 상체 힘: 밀기(A1)+당기기(A2), 밀기(B1)+당기기(B2) 슈퍼세트 — [헬마드] 영상 1·3·8
   upper: [
-    { id: 'bw-pushup', name: '푸시업', easy: '무릎 대고 푸시업', reps: '10~15회', stress: ['wrist', 'shoulder'] },
-    { id: 'bw-row', name: '인버티드 로우', needs: ['rowBar'], alts: [{ name: '엎드려 팔 당기기 (프론 로우)' }], reps: '10~12회', stress: ['shoulder'] },
-    { id: 'bw-superman', name: '슈퍼맨 (엎드려 팔다리 들기)', reps: '12회', stress: ['back'] },
-    { id: 'bw-shoulder-tap', name: '플랭크 자세로 어깨 치기', easy: '무릎 대고 어깨 치기', reps: '좌우 10회', stress: ['wrist', 'shoulder'] },
-    { id: 'bw-bear', name: '베어 크롤 자세 버티기', reps: '30초', stress: ['wrist'] }
+    { id: 'bw-pushup', name: '푸시업 (팔꿈치는 몸통에서 45도)', easy: '무릎 대고 푸시업', pair: 'A', stress: ['wrist', 'shoulder'] },
+    { id: 'bw-row', name: '인버티드 로우', needs: ['rowBar'], alts: [{ name: '엎드려 팔 당기기 (프론 로우)' }], pair: 'A', stress: ['shoulder'] },
+    { id: 'bw-shoulder-tap', name: '플랭크 자세로 어깨 치기', easy: '무릎 대고 어깨 치기', pair: 'B', stress: ['wrist', 'shoulder'] },
+    { id: 'bw-superman', name: '슈퍼맨 (엎드려 팔다리 들기)', pair: 'B', stress: ['back'] },
+    { id: 'bw-bear', name: '베어 크롤 (엉덩이 낮게, 앞뒤로 기기)', reps: '40초', stress: ['wrist'] }
   ],
-  // 하체 힘
+  // 하체 힘: 뒤로 런지가 무릎 부담이 적어요 — [헬마드] 영상 2·6
   lower: [
-    { id: 'bw-squat', name: '맨몸 스쿼트 (3초 천천히 내려가기)', reps: '15회', stress: ['knee'] },
-    { id: 'bw-rev-lunge', name: '뒤로 런지', reps: '각 다리 10회', stress: ['knee'] },
-    { id: 'bw-side-lunge', name: '옆으로 런지 (사이드 런지)', reps: '각 다리 8회', stress: ['knee'] },
-    { id: 'bw-stepup', name: '의자 스텝업', reps: '각 다리 10회', stress: ['knee'] },
-    { id: 'bw-bridge', name: '글루트 브릿지 (위에서 2초 멈추기)', reps: '15회' },
-    { id: 'bw-calf', name: '한 발 종아리 들기', easy: '두 발 종아리 들기', reps: '각 다리 15회', stress: ['ankle'] }
+    { id: 'bw-rev-lunge', name: '뒤로 런지 (엉덩이를 아래로)', stress: ['knee'] },
+    { id: 'bw-squat', name: '맨몸 스쿼트 (무릎은 발끝 방향)', stress: ['knee'] },
+    { id: 'bw-bridge', name: '글루트 브릿지 (위에서 2초 멈추기)' },
+    { id: 'bw-side-lunge', name: '옆으로 런지 (사이드 런지)', stress: ['knee'] },
+    { id: 'bw-wallsit', name: '벽에 기대 앉기 (무릎 90도)', reps: '40초', stress: ['knee'] },
+    { id: 'bw-calf', name: '한 발 종아리 들기', easy: '두 발 종아리 들기', stress: ['ankle'] }
   ],
-  // 몸통 (코어)
+  // 몸통 (코어): 움직이는 코어 + 버티는 코어 — [헬마드] 영상 1·2·5
   core: [
-    { id: 'bw-plank', name: '플랭크', reps: '40초' },
-    { id: 'bw-side-plank', name: '사이드 플랭크', easy: '무릎 대고 사이드 플랭크', reps: '각 30초', stress: ['shoulder'] },
+    { id: 'bw-hollow', name: '할로우 홀드 (허리를 바닥에 붙이기)', easy: '무릎 굽혀 할로우 홀드', reps: '30초', stress: ['back'] },
+    { id: 'bw-plank', name: '플랭크 (머리~발뒤꿈치 일직선)', reps: '40초' },
     { id: 'bw-deadbug', name: '데드버그', reps: '12회' },
+    { id: 'bw-side-plank', name: '사이드 플랭크', easy: '무릎 대고 사이드 플랭크', reps: '각 30초', stress: ['shoulder'] },
     { id: 'bw-birddog', name: '버드독', reps: '각 10회' },
-    { id: 'bw-hollow', name: '할로우 홀드', easy: '무릎 굽혀 할로우 홀드', reps: '30초', stress: ['back'] },
-    { id: 'bw-bridge-march', name: '브릿지 자세로 다리 번갈아 들기', reps: '좌우 10회' }
+    { id: 'bw-bear-hold', name: '베어 크롤 자세 버티기', reps: '30초', stress: ['wrist'] }
   ],
-  // 체중 감량 서킷 (40초 운동 + 20초 쉬기)
+  // 체중 감량 서킷: 움직이는 동작 ↔ 버티는 동작을 번갈아, 40초 운동 + 15초 쉬기 — [헬마드] 영상 2
   cond: [
-    { id: 'cd-jack', name: '점핑잭', stress: ['knee', 'ankle'] },
-    { id: 'cd-climber', name: '마운틴 클라이머', stress: ['wrist'] },
-    { id: 'cd-highknee', name: '제자리 빠르게 무릎 들기', stress: ['knee', 'ankle'] },
     { id: 'cd-squat-thrust', name: '스쿼트 스러스트 (점프 없는 버피)', stress: ['wrist', 'knee'] },
-    { id: 'cd-skater-step', name: '스케이터 스텝 (옆으로 크게 걷기)', stress: ['knee'] }
+    { id: 'cd-hollow', name: '할로우 홀드', stress: ['back'] },
+    { id: 'cd-rev-lunge', name: '뒤로 런지 (좌우 번갈아)', stress: ['knee'] },
+    { id: 'cd-plank', name: '플랭크' },
+    { id: 'cd-jump-squat', name: '점프 스쿼트 (소리 안 나게 사뿐히 착지)', stress: ['knee', 'ankle'] },
+    { id: 'cd-wallsit', name: '벽에 기대 앉기', stress: ['knee'] }
   ],
-  // 관절에 부담이 적은 서킷 (하체를 많이 쓴 날, 무릎·발목이 불편할 때)
+  // 관절 부담이 적은 서킷 (하체를 많이 쓴 날, 무릎·발목이 불편할 때) — 점프 대신 버티기
   condLow: [
-    { id: 'cl-march', name: '제자리 무릎 높이 들어 걷기' },
     { id: 'cl-step-jack', name: '점프 없이 팔다리 벌리기 (스텝 잭)' },
+    { id: 'cl-hollow', name: '할로우 홀드', stress: ['back'] },
     { id: 'cl-bridge', name: '글루트 브릿지' },
-    { id: 'cl-deadbug', name: '데드버그' },
-    { id: 'cl-plank', name: '플랭크' }
+    { id: 'cl-plank', name: '플랭크' },
+    { id: 'cl-march', name: '제자리 무릎 높이 들어 걷기' },
+    { id: 'cl-deadbug', name: '데드버그' }
+  ],
+  // 인터벌 (HIIT): 주 2번까지, 하체 날·투구 전후에는 넣지 않아요 — [헬마드] 영상 11
+  hiit: [
+    { id: 'hi-warm', name: '가볍게 걷거나 천천히 페달 밟기 (몸풀기)', min: 5 },
+    { id: 'hi-intervals', name: '인터벌 8번: 30초 전력의 90% + 90초 걸으며 쉬기',
+      reps: '실내 자전거(무겁게) 또는 평지 달리기', min: 16, key: true,
+      steps: ['30초: 낼 수 있는 속도의 90%로 (멈추지 말고)', '90초: 걷거나 아주 천천히 (완전히 서서 쉬지 않기)',
+              '달리기라면 발 가운데로 착지, 허리는 곧게', '체중이 많이 나가거나 무릎이 불편하면 자전거로'] },
+    { id: 'hi-cool', name: '천천히 걸으며 숨 고르기', min: 4 }
   ],
   // 파워·구속 (맨몸 폭발력) — [능력] 1. 하체 힘과 폭발력, 2. 몸통 회전력
   power: [
@@ -265,6 +282,15 @@ const BODYWEIGHT = {
   // 가벼운 날 (투구 전날)
   light: [
     { id: 'lt-mobility', name: '고관절·흉추 움직임 (90/90 전환, 오픈북)', reps: '천천히', min: 8 },
+    { id: 'lt-inchworm', name: '인치웜 (무릎 펴고 손으로 걸어 나갔다 돌아오기)', reps: '5회, 천천히', min: 4, from: '헬마드' },
     { id: 'lt-calf-foot', name: '발바닥·종아리 풀기', reps: '좌우 1분', min: 3 }
   ]
 };
+
+// 맨몸 근력 운동의 "2~3주마다 자극 바꾸기" — [헬마드] 영상 4·7·12
+// (주차는 계획 시작부터 세요. 2주마다 다음 방법으로 넘어가고, 3가지를 돌아가며 해요)
+const BW_METHODS = [
+  { label: '횟수 늘리기', tip: '지난 주보다 1~2개씩 더 해요. 최대 횟수의 80~90%(2~3개 남기고)까지 해요.', rest: '45초' },
+  { label: '템포', tip: '3초 동안 천천히 내리고 1초에 올려요. 횟수는 줄어도 괜찮아요.', rest: '45초' },
+  { label: '난이도 올리기', tip: '쉬는 시간을 30초로 줄여요. 20개 넘게 쉬우면 어려운 동작이나 물병·책 넣은 가방을 메고 해요.', rest: '30초' }
+];

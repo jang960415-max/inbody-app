@@ -476,6 +476,8 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 }
 .ex-block-head span { font-weight: normal; color: var(--muted); }
 .tag-stretch { background: #eef7f0; color: var(--good); }
+.ex-block-note { margin: 6px 2px 0; font-size: 0.8rem; color: var(--muted); }
+.ex-block-note b { color: var(--main); }
 .wk-extra { color: var(--muted); font-size: 0.75rem; }
 .past-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--muted); }
 
