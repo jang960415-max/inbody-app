@@ -566,7 +566,9 @@ function renderAnalysis(data, nutrition) {
     +   '단백질은 체중 1kg당 ' + n.proteinPerKg + 'g, 지방은 전체 칼로리의 '
     +   Math.round(CONFIG.fatRatio * 100) + '%, 탄수화물은 나머지 칼로리로 정했어요.'
     + '</p>'
-    + '</div>';
+    + '</div>'
+
+    + '<button type="button" class="primary-btn" onclick="showTab(\'diet\')">🍚 이 기준으로 짠 식단표 보기</button>';
 }
 
 
@@ -586,6 +588,7 @@ document.getElementById('inbody-form').addEventListener('submit', event => {
   latestResult = { data, nutrition };
 
   renderAnalysis(data, nutrition);
+  renderDiet(true);   // 식단표도 새로 만들어둬요 (diet.js)
   showTab('analysis');
 });
 

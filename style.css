@@ -275,6 +275,58 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .macro-protein { background: #2f7d6d; }
 .macro-fat     { background: #8b6fc4; }
 
+/* ---------- 식단 달력 ---------- */
+.cal-month { margin: 14px 0 6px; font-size: 0.95rem; }
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-head { text-align: center; font-size: 0.8rem; font-weight: 600; color: var(--muted); padding: 4px 0; }
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 4px 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  color: var(--text);
+}
+.cal-cell.blank { visibility: hidden; }
+.cal-cell.no-plan { color: #b8c0c8; }
+.cal-cell.has-plan { background: var(--main-light); cursor: pointer; }
+.cal-cell.has-plan:hover { border-color: var(--main); }
+.cal-cell.selected { background: var(--main); color: #fff; }
+.cal-cell.selected .cal-kcal { color: #fff; }
+.cal-cell.today { border-color: var(--warn); }
+.cal-head.sun, .cal-cell.sun:not(.selected):not(.no-plan) .cal-day { color: var(--bad); }
+.cal-head.sat, .cal-cell.sat:not(.selected):not(.no-plan) .cal-day { color: #2f6fb5; }
+.cal-day { font-weight: 600; font-size: 0.95rem; line-height: 1.2; }
+.cal-kcal { font-size: 0.62rem; color: var(--main); line-height: 1.2; }
+#day-diet { scroll-margin-top: 56px; }   /* 위쪽 탭에 가려지지 않게 */
+
+/* ---------- 식단표 ---------- */
+.meal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.meal-head h2 { margin: 0; }
+.meal-total { font-weight: bold; color: var(--main); font-size: 0.95rem; }
+.meal-target { margin: 2px 0 12px; font-size: 0.85rem; color: var(--muted); }
+.menu-name { font-weight: 600; margin-bottom: 4px; }
+.source-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: normal;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eef1f4;
+  color: var(--muted);
+  vertical-align: middle;
+}
+.menu-items { margin: 4px 0; padding-left: 20px; font-size: 0.93rem; }
+.menu-items li { margin-bottom: 2px; }
+.menu-items small { color: var(--muted); }
+.menu-sub { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+.extras-title { margin-top: 12px; font-weight: 600; font-size: 0.9rem; color: var(--main); }
+
 /* ---------- 맨 아래 안내 문구 ---------- */
 .disclaimer {
   max-width: 640px;

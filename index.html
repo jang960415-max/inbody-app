@@ -228,8 +228,11 @@
     </section>
 
     <!-- ========== ③~⑤ 다음 단계에서 만들 화면 ========== -->
+    <!-- ========== ③ 식단 화면 ========== -->
     <section id="tab-diet" class="tab-page">
-      <div class="card empty">식단표는 다음 단계에서 만들어요.</div>
+      <div id="diet-result">
+        <div class="card empty">먼저 <b>입력</b> 탭에서 정보를 넣고 "분석하기"를 눌러주세요.</div>
+      </div>
     </section>
     <section id="tab-workout" class="tab-page">
       <div class="card empty">운동표는 다음 단계에서 만들어요.</div>
@@ -249,6 +252,8 @@
   <script src="config.js"></script>
   <!-- 입력 화면에 미리 채울 기본값 (파일이 없어도 앱은 동작해요) -->
   <script src="defaults.js"></script>
+  <script src="foods.js"></script>
+  <script src="diet.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
