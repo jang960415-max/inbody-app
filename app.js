@@ -698,3 +698,38 @@ document.getElementById('inbody-form').addEventListener('input', event => {
   const group = event.target.closest('.choices');
   if (group) group.classList.remove('invalid');
 });
+
+
+// ---------------------------------------------------------------
+// 13. 앱을 열 때 defaults.js 의 기본값을 입력 화면에 채워요
+// ---------------------------------------------------------------
+function applyDefaults() {
+  // defaults.js 파일이 없으면 빈 화면으로 시작해요
+  if (typeof DEFAULTS === 'undefined') return;
+
+  for (const key in DEFAULTS) {
+    const value = DEFAULTS[key];
+    const field = document.getElementById(key);
+
+    if (field) {
+      // 숫자·글자 칸
+      field.value = (value === null || value === undefined) ? '' : value;
+    } else if (Array.isArray(value)) {
+      // 여러 개 고르는 선택지
+      document.querySelectorAll('input[name="' + key + '"]').forEach(box => {
+        box.checked = value.includes(box.value);
+      });
+    } else {
+      // 하나만 고르는 선택지
+      const radio = document.querySelector('input[name="' + key + '"][value="' + value + '"]');
+      if (radio) radio.checked = true;
+    }
+  }
+
+  // 기본값에 맞춰 자동 표시 부분도 새로 그려요
+  document.getElementById('equipment-field').hidden = readChoice('place') !== 'home';
+  updateDaysCount();
+  updateTotalMinutes();
+}
+
+applyDefaults();
