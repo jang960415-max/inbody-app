@@ -90,11 +90,18 @@
         <div class="card">
           <h2>목표와 생활</h2>
           <div class="field">
-            <span class="label">목표</span>
+            <span class="label">체중 목표</span>
             <div class="choices">
-              <label><input type="radio" name="goal" value="lose"> 체중 감량</label>
-              <label><input type="radio" name="goal" value="gain"> 근육 증가</label>
-              <label><input type="radio" name="goal" value="maintain"> 유지</label>
+              <label><input type="radio" name="weightGoal" value="lose"> 줄이기</label>
+              <label><input type="radio" name="weightGoal" value="maintain"> 유지</label>
+              <label><input type="radio" name="weightGoal" value="gain"> 늘리기</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">근육 목표</span>
+            <div class="choices">
+              <label><input type="radio" name="muscleGoal" value="keep"> 유지</label>
+              <label><input type="radio" name="muscleGoal" value="gain"> 늘리기</label>
             </div>
           </div>
           <div class="field">
@@ -119,9 +126,15 @@
             <input type="number" id="workoutDays" inputmode="numeric" placeholder="예: 3">
           </div>
           <div class="field">
-            <label class="label" for="workoutMinutes">하루 운동 가능 시간 (분)</label>
-            <input type="number" id="workoutMinutes" inputmode="numeric" placeholder="예: 60">
+            <label class="label" for="workoutSets">하루 운동 세트 수 (개)</label>
+            <input type="number" id="workoutSets" inputmode="numeric" placeholder="예: 3">
           </div>
+          <div class="field">
+            <label class="label" for="minutesPerSet">세트마다 운동 가능 시간 (분)</label>
+            <input type="number" id="minutesPerSet" inputmode="numeric" placeholder="예: 20">
+          </div>
+          <!-- 세트 수 × 세트당 시간을 자동으로 계산해서 보여줘요 -->
+          <p id="total-minutes" class="total-line">세트 수와 세트당 시간을 넣으면 총 운동 시간이 나와요.</p>
           <div class="field">
             <span class="label">운동 장소</span>
             <div class="choices">

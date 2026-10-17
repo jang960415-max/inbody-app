@@ -56,11 +56,13 @@ function readForm() {
     bmr:            readNumber('bmr'),
     visceralFat:    readNumber('visceralFat'),   // 선택
     abdominalFat:   readNumber('abdominalFat'),  // 선택
-    goal:           readChoice('goal'),
+    weightGoal:     readChoice('weightGoal'),   // lose / maintain / gain
+    muscleGoal:     readChoice('muscleGoal'),   // gain / keep
     activity:       readChoice('activity'),
     experience:     readChoice('experience'),
     workoutDays:    readNumber('workoutDays'),
-    workoutMinutes: readNumber('workoutMinutes'),
+    workoutSets:    readNumber('workoutSets'),
+    minutesPerSet:  readNumber('minutesPerSet'),
     place:          readChoice('place'),
     // "우유, 땅콩" → ["우유", "땅콩"]
     avoidFoods: avoidText.split(',').map(s => s.trim()).filter(s => s !== '')
@@ -85,11 +87,12 @@ const FIELD_INFO = {
   visceralFat:    { name: '내장지방 레벨',   unit: '' },
   abdominalFat:   { name: '복부지방률',      unit: '' },
   workoutDays:    { name: '운동할 수 있는 날', unit: '일' },
-  workoutMinutes: { name: '하루 운동 가능 시간', unit: '분' }
+  workoutSets:    { name: '하루 운동 세트 수', unit: '개' },
+  minutesPerSet:  { name: '세트마다 운동 가능 시간', unit: '분' }
 };
 
 const CHOICE_INFO = {
-  sex: '성별', goal: '목표', activity: '평소 활동량',
+  sex: '성별', weightGoal: '체중 목표', muscleGoal: '근육 목표', activity: '평소 활동량',
   experience: '운동 경험', place: '운동 장소'
 };
 
@@ -158,6 +161,13 @@ function validate(data) {
         + calcBmi.toFixed(1) + ')과 많이 달라요. 다시 확인해 주세요.');
       badFields.push('bmi', 'height', 'weight');
     }
+
+    const totalMinutes = data.workoutSets * data.minutesPerSet;
+    if (totalMinutes > CONFIG.maxTotalWorkoutMinutes) {
+      errors.push('하루 총 운동 시간(' + totalMinutes + '분)이 너무 길어요. '
+        + CONFIG.maxTotalWorkoutMinutes + '분 이하가 되도록 세트 수나 세트당 시간을 줄여주세요.');
+      badFields.push('workoutSets', 'minutesPerSet');
+    }
   }
 
   return { errors, badFields };
@@ -193,7 +203,8 @@ function showErrors(errors, badFields) {
 // ---------------------------------------------------------------
 function calculateNutrition(data) {
   const factor = CONFIG.activityFactors[data.activity];
-  const adjust = CONFIG.goalAdjust[data.goal];
+  const goal = CONFIG.goals[data.weightGoal][data.muscleGoal];
+  const adjust = goal.calorieAdjust;
 
   // 하루 소비 칼로리
   const tdee = data.bmr * factor;
@@ -213,7 +224,7 @@ function calculateNutrition(data) {
 
   // 영양소 (g)
   const kcal = CONFIG.kcalPerGram;
-  const proteinG = Math.round(data.weight * CONFIG.proteinPerKg[data.goal]);
+  const proteinG = Math.round(data.weight * goal.proteinPerKg);
   const fatG = Math.round(target * CONFIG.fatRatio / kcal.fat);
   const carbKcal = Math.max(0, target - proteinG * kcal.protein - fatG * kcal.fat);
   const carbG = Math.round(carbKcal / kcal.carb);
@@ -221,6 +232,7 @@ function calculateNutrition(data) {
   return {
     tdee: Math.round(tdee),
     factor, adjust, floor, raised, target,
+    proteinPerKg: goal.proteinPerKg, tip: goal.tip,
     proteinG, fatG, carbG
   };
 }
@@ -230,7 +242,12 @@ function calculateNutrition(data) {
 // 5. 수치를 쉬운 말로 풀기
 // ---------------------------------------------------------------
 const SEX_NAME = { male: '남성', female: '여성' };
-const GOAL_NAME = { lose: '체중 감량', gain: '근육 증가', maintain: '유지' };
+const WEIGHT_GOAL_NAME = { lose: '체중 줄이기', maintain: '체중 유지', gain: '체중 늘리기' };
+const MUSCLE_GOAL_NAME = { gain: '근육 늘리기', keep: '근육 유지' };
+
+function goalName(data) {
+  return WEIGHT_GOAL_NAME[data.weightGoal] + ' + ' + MUSCLE_GOAL_NAME[data.muscleGoal];
+}
 const ACTIVITY_NAME = { sedentary: '거의 안 움직임', light: '가볍게', moderate: '보통', active: '많이' };
 
 function describeMetrics(data) {
@@ -337,8 +354,8 @@ function renderAnalysis(data, nutrition) {
 
   // 계산 과정 설명
   const adjustText = n.adjust === 0
-    ? '목표가 "유지"라서 그대로 둬요.'
-    : '목표가 ' + withJosa('"' + GOAL_NAME[data.goal], '"이라서 ', '"라서 ') + Math.abs(Math.round(n.adjust * 100)) + '% '
+    ? '목표가 ' + withJosa('"' + goalName(data), '"이라서', '"라서') + ' 칼로리는 그대로 둬요.'
+    : '목표가 ' + withJosa('"' + goalName(data), '"이라서 ', '"라서 ') + Math.abs(Math.round(n.adjust * 100)) + '% '
       + (n.adjust < 0 ? '줄여요' : '늘려요') + ' → 약 ' + Math.round(n.tdee * (1 + n.adjust)).toLocaleString() + 'kcal';
 
   let safetyHtml = '';
@@ -353,6 +370,13 @@ function renderAnalysis(data, nutrition) {
   if (data.age < 19) {
     ageHtml = '<div class="notice">⚠️ 이 계산 방식은 성인 기준이에요. 성장기에는 더 많은 영양이 필요할 수 있으니 '
       + '보호자나 전문가와 꼭 상의해 주세요.</div>';
+  }
+
+  // 저체중인데 체중을 줄이려고 할 때 알려주기
+  let goalWarnHtml = '';
+  if (data.weightGoal === 'lose' && data.bmi < CONFIG.standardRanges.bmi.underweight) {
+    goalWarnHtml = '<div class="notice">⚠️ BMI가 저체중 범위인데 체중 줄이기를 골랐어요. '
+      + '체중을 더 줄이기 전에 전문가와 상담해 보시는 걸 권해요.</div>';
   }
 
   // 탄·단·지 막대
@@ -378,6 +402,7 @@ function renderAnalysis(data, nutrition) {
     + '<div class="card">'
     + '<h2>하루 권장 칼로리</h2>'
     + '<div class="big-number">' + n.target.toLocaleString() + ' <span>kcal</span></div>'
+    + '<p class="goal-line"><b>내 목표: ' + goalName(data) + '</b><br>' + n.tip + '</p>'
     + '<b>이렇게 계산했어요</b>'
     + '<ol class="steps">'
     +   '<li>인바디에서 잰 기초대사량: <b>' + data.bmr.toLocaleString() + 'kcal</b></li>'
@@ -387,14 +412,14 @@ function renderAnalysis(data, nutrition) {
     +   '<li>' + (n.raised ? '너무 낮아서 안전장치 적용' : '10kcal 단위로 반올림해서')
     +     ' → 최종 <b>' + n.target.toLocaleString() + 'kcal</b></li>'
     + '</ol>'
-    + safetyHtml + ageHtml
+    + safetyHtml + ageHtml + goalWarnHtml
     + '</div>'
 
     + '<div class="card">'
     + '<h2>하루 영양소 <small>(탄수화물·단백질·지방)</small></h2>'
     + macroHtml
     + '<p class="metric-text" style="margin-top:12px">'
-    +   '단백질은 체중 1kg당 ' + CONFIG.proteinPerKg[data.goal] + 'g, 지방은 전체 칼로리의 '
+    +   '단백질은 체중 1kg당 ' + n.proteinPerKg + 'g, 지방은 전체 칼로리의 '
     +   Math.round(CONFIG.fatRatio * 100) + '%, 탄수화물은 나머지 칼로리로 정했어요.'
     + '</p>'
     + '</div>';
@@ -412,6 +437,7 @@ document.getElementById('inbody-form').addEventListener('submit', event => {
   showErrors(errors, badFields);
   if (errors.length > 0) return;
 
+  data.totalWorkoutMinutes = data.workoutSets * data.minutesPerSet;   // 운동표에서 사용
   const nutrition = calculateNutrition(data);
   latestResult = { data, nutrition };
 
@@ -442,6 +468,34 @@ textInputs.forEach((input, index) => {
     }
   });
 });
+
+// ---------------------------------------------------------------
+// 9. 총 운동 시간 자동 계산 (세트 수 × 세트당 시간)
+// ---------------------------------------------------------------
+function updateTotalMinutes() {
+  const sets = readNumber('workoutSets');
+  const minutes = readNumber('minutesPerSet');
+  const box = document.getElementById('total-minutes');
+
+  if (!sets || !minutes || sets < 0 || minutes < 0) {
+    box.textContent = '세트 수와 세트당 시간을 넣으면 총 운동 시간이 나와요.';
+    box.classList.remove('filled');
+    return;
+  }
+
+  const total = sets * minutes;
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  // 60분 이상이면 "1시간 30분"처럼 함께 보여줘요
+  let timeText = total + '분';
+  if (hours > 0) timeText += ' (' + hours + '시간' + (rest > 0 ? ' ' + rest + '분' : '') + ')';
+
+  box.innerHTML = '총 운동 시간: ' + sets + '세트 × ' + minutes + '분 = <b>' + timeText + '</b>';
+  box.classList.add('filled');
+}
+
+document.getElementById('workoutSets').addEventListener('input', updateTotalMinutes);
+document.getElementById('minutesPerSet').addEventListener('input', updateTotalMinutes);
 
 // 고친 칸은 빨간 표시를 지워요
 document.getElementById('inbody-form').addEventListener('input', event => {
