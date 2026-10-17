@@ -306,7 +306,7 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 
 /* 달력 위 이전 달 / 다음 달 */
 .cal-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
-.cal-nav h2 { margin: 0; text-align: center; }
+.cal-nav h2 { margin: 0; text-align: center; font-size: 0.98rem; word-break: keep-all; }
 .cal-nav-btn {
   width: 40px; height: 40px;
   border: 1px solid var(--line);
@@ -381,6 +381,89 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .pct-low  { color: var(--warn); }
 .pct-good { color: var(--good); }
 .pct-over { color: var(--bad); }
+
+/* ---------- 운동표 ---------- */
+.phase-line { margin: -4px 0 12px; font-size: 0.88rem; color: var(--muted); text-align: center; }
+.phase-line b { color: var(--main); }
+
+/* 월~일 표 */
+.week-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.92rem; }
+.week-table th { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-align: left; padding: 4px 6px; }
+.week-table td { padding: 10px 6px; border-top: 1px solid var(--line); vertical-align: middle; }
+.week-row { cursor: pointer; }
+.week-row:hover td { background: #f7f9fa; }
+.week-row.selected td { background: var(--main-light); }
+.week-row.today .wk-day b { color: var(--warn); }
+.wk-day { width: 52px; }
+.wk-day b { display: block; }
+.wk-day small { color: var(--muted); font-size: 0.75rem; }
+.wk-time { width: 48px; color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.wk-status { width: 48px; text-align: center; font-size: 0.85rem; }
+
+/* 강도 색 점 */
+.lv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.lv-high { background: var(--bad); }
+.lv-mid  { background: var(--warn); }
+.lv-low  { background: var(--good); }
+.lv-rest { background: #b8c0c8; }
+
+/* 그날 운동 목록 */
+.ex-list { list-style: none; margin: 10px 0; padding: 0; }
+.ex-item { border-bottom: 1px solid var(--line); }
+.ex-check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; cursor: pointer; }
+.ex-check input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--main); }
+.ex-body { flex: 1; min-width: 0; }
+.ex-name { font-weight: 600; }
+.ex-detail { font-size: 0.88rem; color: var(--text); margin-top: 2px; }
+.ex-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.ex-item.done .ex-name, .ex-item.done .ex-detail { color: var(--muted); text-decoration: line-through; }
+.ex-item.removed { padding: 12px 0 12px 34px; opacity: 0.6; }
+.ex-item.removed .ex-name { text-decoration: line-through; }
+.ex-tag { display: inline-block; font-size: 0.7rem; font-weight: normal; padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
+.tag-key { background: var(--warn-bg); color: var(--warn); }
+.tag-add { background: #e8eefb; color: #2f6fb5; }
+.tag-alt { background: #eef1f4; color: var(--muted); }
+.warmup-steps { margin: 4px 0 0; padding-left: 18px; font-size: 0.8rem; color: var(--muted); }
+.ex-tips { margin: 6px 0 0; padding-left: 18px; font-size: 0.85rem; color: var(--muted); }
+#day-workout { scroll-margin-top: 56px; }
+
+/* 이번 주 투구 */
+.pitch-box { margin: 4px 0 14px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.pitch-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.pitch-count { display: flex; align-items: center; gap: 6px; flex: 1; font-size: 0.88rem; font-weight: 600; }
+.pitch-count input { width: 80px; text-align: center; padding: 8px; }
+.pitch-row .add-btn { height: 40px; }
+.choices input:disabled + * , .choices label:has(input:disabled) { opacity: 0.6; cursor: default; }
+
+/* 구속 목표 */
+.vel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vel-field { font-size: 0.85rem; font-weight: 600; }
+.vel-field input { margin-top: 4px; }
+.vel-summary { margin: 14px 0 0; padding-left: 18px; font-size: 0.9rem; }
+.vel-summary li { margin-bottom: 4px; }
+.vel-summary b { color: var(--main); }
+.vel-timeline { color: var(--muted); font-size: 0.82rem; }
+
+/* 하루 운동을 세트(시간 묶음)별로 */
+.ex-block { margin-top: 12px; }
+.ex-block-head {
+  display: flex; justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--main-light);
+  color: var(--main);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.ex-block-head span { font-weight: normal; color: var(--muted); }
+.tag-stretch { background: #eef7f0; color: var(--good); }
+.wk-extra { color: var(--muted); font-size: 0.75rem; }
+.past-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--muted); }
+
+/* 입력값 반영 설명 (눌러서 펼치기) */
+.applied summary { cursor: pointer; }
+.applied-list { margin: 10px 0 0; padding-left: 18px; font-size: 0.86rem; }
+.applied-list li { margin-bottom: 6px; }
 
 /* ---------- 맨 아래 안내 문구 ---------- */
 .disclaimer {

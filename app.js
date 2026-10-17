@@ -74,6 +74,7 @@ function readForm() {
     // 운동 기구는 "집"에서 운동할 때만 써요
     equipment:      place === 'home' ? readChoices('equipment') : [],
     injuries:       readChoices('injuries')      // ["none"] 또는 ["knee", "back"]
+    // 공 던지는 요일·공 개수는 운동 탭에서 주마다 입력해요 (workout.js)
   };
 }
 
@@ -575,6 +576,9 @@ function runAnalysis(silent) {
 
   renderAnalysis(data, nutrition);
   renderDiet();   // 식단 기록 화면의 목표값도 새로 맞춰요 (diet.js)
+  // 운동 계획표: 입력값이 바뀌었으면 계획표도 바꿀지 물어봐요 (앱을 열 때는 묻지 않아요) (workout.js)
+  syncWorkoutPlan(data, !silent);
+  renderWorkout();
   return true;
 }
 
