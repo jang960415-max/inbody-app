@@ -435,6 +435,25 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .pitch-row .add-btn { height: 40px; }
 .choices input:disabled + * , .choices label:has(input:disabled) { opacity: 0.6; cursor: default; }
 
+/* 구속 목표 옆 계획표 고정 */
+.vel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.vel-head h2 { margin: 0; }
+.lock-toggle {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.lock-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.lock-toggle.on { background: var(--main); border-color: var(--main); color: #fff; }
+.lock-note { background: var(--main-light); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin-bottom: 12px; }
+#velocity-card input:disabled, .pitch-box input:disabled { background: #f1f3f5; color: var(--muted); }
+
 /* 구속 목표 */
 .vel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .vel-field { font-size: 0.85rem; font-weight: 600; }

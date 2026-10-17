@@ -134,6 +134,8 @@ function pitchDateOf(weekStart) {
 const CYCLE_AFTER_PITCH = ['lower', 'upper', 'rest', 'rotation'];
 const SESSION_BY_TYPE = {};
 PITCHER_SESSIONS.forEach(s => { SESSION_BY_TYPE[s.type] = s; });
+SESSION_BY_TYPE['recovery-prepitch'] = RECOVERY_PREPITCH_SESSION;
+const LIGHT_AROUND_PITCH = ['recovery', 'prepitch', 'recovery-prepitch'];   // 투구 전날·다음 날
 
 function sessionTypeFor(dateKey) {
   const ws = weekStartOf(dateKey);
@@ -144,6 +146,8 @@ function sessionTypeFor(dateKey) {
   if (prev === dateKey) return 'pitch';
   const since = daysBetween(prev, dateKey);
   const until = daysBetween(dateKey, next);
+  // 투구일이 바뀌어도 전날은 "투구 전날 준비", 다음 날은 "회복"이 되도록 가장 먼저 정해요
+  if (since === 1 && until === 1) return 'recovery-prepitch';   // 둘 다 해당하면 가볍게 합쳐요
   if (since === 1) return 'recovery';
   if (until === 1) return 'prepitch';
   return CYCLE_AFTER_PITCH[(since - 2) % CYCLE_AFTER_PITCH.length];
@@ -151,6 +155,7 @@ function sessionTypeFor(dateKey) {
 
 // 오늘부터 새 버전 적용 (지난 날은 먼저 고정해둬요)
 function addVersion(settings, velocity) {
+  if (isLocked()) return;   // 고정 중에는 절대 바꾸지 않아요
   freezePast();
   const today = todayKey();
   const last = latestVersion();
@@ -177,6 +182,31 @@ function freezePast() {
   if (changed) savePlan();
 }
 
+// ---------------------------------------------------------------
+// 2-0. 계획표 고정 🔒
+//      고정하면 오늘부터 계획 끝날까지의 계획을 지금 모습 그대로 저장해둬요.
+//      고정 중에는 입력값·구속 목표·이번 주 투구가 바뀌어도, 프로그램이 고쳐져도 계획표가 바뀌지 않아요.
+//      (운동 체크는 계속 할 수 있어요)
+// ---------------------------------------------------------------
+function isLocked() {
+  return !!(workoutPlan && workoutPlan.locked);
+}
+function setLocked(on) {
+  freezePast();
+  const today = todayKey();
+  if (on) {
+    for (let d = today; d <= workoutPlan.end; d = addDays(d, 1)) {
+      if (!workoutPlan.frozen[d]) workoutPlan.frozen[d] = generateDayPlan(d, versionFor(d));
+    }
+    workoutPlan.locked = { since: today };
+  } else {
+    // 고정하면서 미리 저장해둔 오늘 이후 계획을 지우면, 다시 버전에 따라 만들어져요 (지난 날은 그대로)
+    Object.keys(workoutPlan.frozen).forEach(d => { if (d >= today) delete workoutPlan.frozen[d]; });
+    workoutPlan.locked = null;
+  }
+  savePlan();
+}
+
 function getDayPlan(dateKey) {
   if (dateKey < workoutPlan.start) return null;            // 계획 시작 전
   if (workoutPlan.frozen[dateKey]) return workoutPlan.frozen[dateKey];
@@ -191,6 +221,13 @@ function syncWorkoutPlan(data, ask) {
   if (sameSettings(now, last.settings)) { declinedSettings = null; return; }
   if (!ask) return;                                         // 앱을 열 때는 묻지 않고 그대로 둬요
   if (declinedSettings && sameSettings(now, declinedSettings)) return;
+
+  // 계획표가 고정돼 있으면 묻지 않고 그대로 둬요 (한 번만 알려줘요)
+  if (isLocked()) {
+    alert('입력값이 바뀌었지만 운동 계획표가 🔒 고정돼 있어서 바뀌지 않아요.\n바꾸려면 운동 탭에서 "계획표 고정"을 풀고 다시 분석해 주세요.');
+    declinedSettings = now;
+    return;
+  }
 
   const ok = confirm('입력값이 바뀌었어요.\n운동 계획표도 새 입력값에 맞춰 바꿀까요?\n\n'
     + '· 확인: 오늘부터 새 계획 (지난 날의 계획과 체크 기록은 그대로)\n· 취소: 운동 계획표는 그대로');
@@ -226,10 +263,26 @@ function buildWeekSessions(weekStart, s) {
   });
   days.forEach(day => {
     if (canWork(day.dayKey)) return;
+    // 투구 전날·다음 날은 운동 가능 요일이 아니어도 가볍게 남겨요 (시간은 채우지 않아요)
+    if (LIGHT_AROUND_PITCH.includes(day.session.type)) {
+      notes.push(DAY_NAME[day.dayKey] + '요일은 운동 가능 요일이 아니지만, 투구 전날·다음 날이라 "' + day.session.title + '"을 가볍게만 넣었어요.');
+      day.session = Object.assign({}, day.session, { fill: false,
+        tips: day.session.tips.concat(['운동 가능 요일은 아니지만 투구 전날·다음 날이라 가볍게만 넣었어요. 시간이 없으면 스트레칭만 해도 돼요.']) });
+      return;
+    }
     if (MAIN_SESSIONS.includes(day.session.type)) {
       notes.push(DAY_NAME[day.dayKey] + '요일은 운동할 수 없고 옮길 휴식 날도 없어서 ' + withJosa('"' + day.session.title, '"은', '"는') + ' 쉬어요.');
     }
     day.session = OFF_SESSION;
+  });
+
+  // 이틀 연속 던지는 날은 경고를 붙여요
+  days.forEach(day => {
+    const dateKey = addDays(weekStart, WEEK_DAY_KEYS.indexOf(day.dayKey));
+    if (day.session.type === 'pitch' && sessionTypeFor(addDays(dateKey, -1)) === 'pitch') {
+      day.session = Object.assign({}, day.session, {
+        tips: ['⚠️ 어제도 투구일이에요. 이틀 연속 던지는 건 어깨·팔꿈치에 부담이 커서, 투구 수를 줄이거나 코치와 상의해 주세요.'].concat(day.session.tips) });
+    }
   });
   return { days: days, notes: notes };
 }
@@ -579,8 +632,10 @@ function renderVelocityCard() {
   const last = latestVersion();
   const v = last.velocity || {};
   const endDate = fromDateKey(workoutPlan.end);
+  const locked = isLocked();
+  const off = locked ? ' disabled' : '';
   const field = (id, label, value) => '<label class="vel-field">' + label
-    + '<input type="number" id="' + id + '" inputmode="decimal" step="0.1" placeholder="km/h" value="' + (value === undefined ? '' : value) + '"></label>';
+    + '<input type="number" id="' + id + '" inputmode="decimal" step="0.1" placeholder="km/h" value="' + (value === undefined ? '' : value) + '"' + off + '></label>';
 
   let summary = '';
   if (last.velocity) {
@@ -605,14 +660,24 @@ function renderVelocityCard() {
       + '지금은 "보통" 강조로 짜여 있어요.</p>';
   }
 
+  // 구속 목표 바로 옆: 계획표 고정 버튼
+  const lockHtml = '<label class="lock-toggle' + (locked ? ' on' : '') + '">'
+    + '<input type="checkbox" id="plan-lock"' + (locked ? ' checked' : '') + '>'
+    + (locked ? '🔒 계획표 고정됨' : '🔓 계획표 고정') + '</label>';
+  const lockNote = locked
+    ? '<div class="lock-note">🔒 ' + shortDate(workoutPlan.locked.since) + '부터 계획표가 고정돼 있어요. 입력값·구속 목표·이번 주 투구를 바꿔도, '
+      + '프로그램이 고쳐져도 계획표는 바뀌지 않아요. 운동 체크는 할 수 있어요.</div>'
+    : '';
+
   return '<div class="card" id="velocity-card">'
-    + '<h2>⚾ 구속 목표 <small>(' + endDate.getFullYear() + '년 ' + (endDate.getMonth() + 1) + '월까지)</small></h2>'
+    + '<div class="vel-head"><h2>⚾ 구속 목표 <small>(' + endDate.getFullYear() + '년 ' + (endDate.getMonth() + 1) + '월까지)</small></h2>' + lockHtml + '</div>'
+    + lockNote
     + '<div class="vel-grid">'
     +   field('vel-avg', '현재 평균 구속', v.avg) + field('vel-max', '현재 최고 구속', v.max)
     +   field('vel-target-avg', '목표 평균 구속', v.targetAvg) + field('vel-target-max', '목표 최고 구속', v.targetMax)
     + '</div>'
     + '<p class="food-hint" id="vel-hint">' + (velocityMessage || '숫자는 km/h예요. 바꾸면 오늘부터 계획이 조금씩 맞춰져요 (지난 날은 그대로).') + '</p>'
-    + '<button type="button" class="primary-btn" id="vel-save-btn" style="margin-top:10px">목표 저장하고 계획 맞추기</button>'
+    + '<button type="button" class="primary-btn" id="vel-save-btn" style="margin-top:10px"' + off + '>목표 저장하고 계획 맞추기</button>'
     + summary
     + '<p class="footnote">구속은 하체 → 몸통 → 팔로 힘이 이어져야 올라가요 [능력]. 다만 운동한다고 목표 구속이 꼭 나온다는 보장은 없어요.</p>'
     + '</div>';
@@ -674,9 +739,10 @@ let pitchMessage = '';
 function renderPitchControls(weekStart) {
   const p = weekPitchFor(weekStart);
   const isPastWeek = addDays(weekStart, 6) < todayKey();
-  const off = isPastWeek ? ' disabled' : '';
+  const off = (isPastWeek || isLocked()) ? ' disabled' : '';
   let status;
   if (pitchMessage) status = pitchMessage;
+  else if (isLocked()) status = '🔒 계획표가 고정돼 있어서 바꿀 수 없어요.';
   else if (isPastWeek) status = '지난 주라서 바꿀 수 없어요.';
   else if (p.explicit) status = '이번 주에 저장한 값이에요.';
   else if (p.from) status = shortDate(p.from) + ' 주에 넣은 값을 그대로 쓰고 있어요. 이번 주가 다르면 바꾸고 저장하세요.';
@@ -697,6 +763,7 @@ function renderPitchControls(weekStart) {
 }
 
 function savePitch() {
+  if (isLocked()) return;   // 고정 중에는 바꾸지 않아요
   const weekStart = workoutView.weekStart;
   const checked = document.querySelector('input[name="week-pitch-day"]:checked');
   const count = Number(document.getElementById('week-pitch-count').value);
@@ -834,6 +901,7 @@ function renderAppliedCard() {
 // 10. 버튼·체크 동작
 // ---------------------------------------------------------------
 function saveVelocity() {
+  if (isLocked()) return;   // 고정 중에는 바꾸지 않아요
   const read = id => { const t = document.getElementById(id).value.trim(); return t === '' ? null : Number(t); };
   const v = { avg: read('vel-avg'), max: read('vel-max'), targetAvg: read('vel-target-avg'), targetMax: read('vel-target-max') };
   const [lo, hi] = CONFIG.velocity.speedLimits;
@@ -859,6 +927,18 @@ function saveVelocity() {
 
 function attachWorkoutEvents(box) {
   document.getElementById('vel-save-btn').addEventListener('click', saveVelocity);
+
+  // 계획표 고정 켜기/끄기
+  document.getElementById('plan-lock').addEventListener('change', e => {
+    if (e.target.checked) {
+      setLocked(true);
+    } else {
+      const ok = confirm('계획표 고정을 풀까요?\n\n풀면 오늘부터는 지금 입력값·구속 목표·이번 주 투구에 맞춰 계획이 다시 만들어질 수 있어요.\n(지난 날의 계획과 체크 기록은 그대로예요)');
+      if (!ok) { e.target.checked = true; return; }
+      setLocked(false);
+    }
+    renderWorkout();
+  });
   document.getElementById('pitch-save-btn').addEventListener('click', savePitch);
   document.getElementById('week-pitch-count').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); savePitch(); }

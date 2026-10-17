@@ -170,6 +170,19 @@ const PITCHER_SESSIONS = [
   }
 ];
 
+// 투구 다음 날이면서 다음 투구 전날일 때 (투구일 사이가 이틀뿐일 때): 회복 + 투구 전날 준비를 가볍게 합쳐요
+const RECOVERY_PREPITCH_SESSION = {
+  type: 'recovery-prepitch', title: '회복 + 투구 전날 준비', intensity: '가볍게', minutes: 35, level: 'low', fill: false,
+  items: [
+    { id: 'rp-walk', name: '가볍게 걷기 또는 자전거', reps: '15~20분 (숨이 조금 차는 정도)', min: 18, key: true },
+    { id: 'rp-warmup', name: '공통 몸풀기 + 고관절·어깨 스트레칭', warmup: true },
+    { id: 'rp-band', name: '가장 약한 밴드로 팔 바깥/안쪽 돌리기', sets: 1, reps: '15회', needs: ['band'], alts: [NO_BAND_ER], fixedSets: true },
+    { id: 'rp-shadow', name: '섀도우 피칭 (가볍게)', reps: '10회', min: 3, stress: ['shoulder', 'elbow'] },
+    { id: 'rp-stretch', name: '어깨·등·고관절 가볍게 스트레칭', min: 5, stretch: true }
+  ],
+  tips: ['어제 던졌고 내일 또 던지는 날이라 회복과 준비를 가볍게 합쳤어요. 질주나 땀 나는 운동은 하지 않아요.']
+};
+
 // 운동 못 하는 날 (입력에서 고르지 않은 요일)
 const OFF_SESSION = {
   type: 'off', title: '운동 안 하는 날', intensity: '쉼', minutes: 0, level: 'rest', fill: false,
