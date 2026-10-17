@@ -211,6 +211,12 @@
             <label class="label" for="avoidFoods">못 먹는 음식 <small>(알레르기·싫어하는 음식, 쉼표로 구분, 비워둬도 돼요)</small></label>
             <input type="text" id="avoidFoods" placeholder="예: 우유, 땅콩, 오이">
           </div>
+          <div class="field">
+            <label class="label" for="dietRequest">식단 요구사항 <small>(자유롭게 적어주세요, 비워둬도 돼요)</small></label>
+            <textarea id="dietRequest" rows="3" placeholder="예: 닭가슴살이랑 생선 위주로, 빵은 줄이고 매운 음식은 빼줘"></textarea>
+            <!-- 적은 내용을 앱이 어떻게 이해했는지 바로 보여줘요 -->
+            <div id="request-preview" class="total-line">요구사항을 적으면 어떻게 이해했는지 여기에 보여드려요.</div>
+          </div>
         </div>
 
         <!-- 잘못 입력한 내용이 여기에 표시돼요 -->

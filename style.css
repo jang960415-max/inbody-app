@@ -93,6 +93,20 @@ input[type="number"], input[type="text"] {
   border-radius: 8px;
   background: #fff;
 }
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+}
+textarea:focus { outline: 2px solid var(--main); border-color: var(--main); }
+#request-preview { margin: 8px 0 0; }
+#request-preview ul { margin: 4px 0 0; padding-left: 18px; }
+
 input:focus { outline: 2px solid var(--main); border-color: var(--main); }
 input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 

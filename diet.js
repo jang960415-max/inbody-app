@@ -58,9 +58,87 @@ function escapeHtml(text) {
 
 
 // ---------------------------------------------------------------
-// 1. 먹을 수 있는 음식인지 확인 (식단 유형 + 못 먹는 음식)
+// 0-1. 식단 요구사항 해석하기 (단어 사전은 foods.js 맨 아래)
+// ---------------------------------------------------------------
+let requestCache = { text: null, result: null };
+
+function parseDietRequest(text) {
+  text = (text || '').trim();
+  if (requestCache.text === text) return requestCache.result;   // 같은 글이면 다시 계산하지 않아요
+
+  // 메뉴에 들어 있는 재료 이름들 (두 글자 이상)
+  const knownTags = new Set();
+  MENUS.concat(EXTRAS).forEach(f => f.tags.forEach(t => { if (t.length >= 2) knownTags.add(t); }));
+
+  const result = { prefer: [], reduce: [], avoid: [], unknown: [],
+                   preferTags: [], reduceTags: [], avoidTags: [] };
+
+  // 쉼표·마침표·줄바꿈, "그리고", "~고 " 에서 문장을 나눠요
+  // 예) "닭가슴살 많이 넣고 빵은 빼줘" → "닭가슴살 많이 넣고" / "빵은 빼줘"
+  //    (단, "먹고 싶어"처럼 "고 싶"은 나누지 않아요)
+  const phrases = text.split(/[,.\n!?;·]|그리고|(?<=고)\s+(?!싶)/).map(s => s.trim()).filter(s => s);
+
+  phrases.forEach(phrase => {
+    // 이 문장에 나온 음식 단어 찾기
+    let found = [];
+    for (const word in REQUEST_GROUPS) {
+      if (phrase.includes(word)) found.push({ word: word, tags: REQUEST_GROUPS[word] });
+    }
+    knownTags.forEach(tag => {
+      if (phrase.includes(tag) && !REQUEST_GROUPS[tag]) found.push({ word: tag, tags: [tag] });
+    });
+    // "닭"과 "닭가슴살"이 같이 찾아지면 긴 쪽만 남겨요
+    found = found.filter(f => !found.some(o => o.word !== f.word && o.word.includes(f.word)));
+
+    if (found.length === 0) {
+      result.unknown.push(phrase);
+      return;
+    }
+
+    // 빼기 > 줄이기 > 늘리기 순서로 확인해요
+    let type = 'prefer';
+    if (REQUEST_MARKERS.avoid.some(m => phrase.includes(m))) type = 'avoid';
+    else if (REQUEST_MARKERS.reduce.some(m => phrase.includes(m))) type = 'reduce';
+
+    found.forEach(f => {
+      if (!result[type].includes(f.word)) result[type].push(f.word);
+      f.tags.forEach(t => { if (!result[type + 'Tags'].includes(t)) result[type + 'Tags'].push(t); });
+    });
+  });
+
+  // 같은 재료가 겹치면 빼기 > 줄이기 > 늘리기가 이겨요
+  result.reduceTags = result.reduceTags.filter(t => !result.avoidTags.includes(t));
+  result.preferTags = result.preferTags.filter(t => !result.avoidTags.includes(t) && !result.reduceTags.includes(t));
+
+  requestCache = { text: text, result: result };
+  return result;
+}
+
+// 요구사항을 어떻게 이해했는지 글로 보여주기
+const REQUEST_WORD_LABEL = { '맵': '매운 음식', '매운': '매운 음식', '국물': '국물 요리', '국밥': '국물 요리' };
+
+function describeRequest(req) {
+  // "맵"·"매운"처럼 같은 뜻은 하나로 합쳐서 보여줘요
+  const show = words => [...new Set(words.map(w => REQUEST_WORD_LABEL[w] || w))].map(escapeHtml).join(', ');
+  const lines = [];
+  if (req.prefer.length) lines.push('👍 더 자주 넣기: ' + show(req.prefer));
+  if (req.reduce.length) lines.push('🔻 되도록 줄이기: ' + show(req.reduce));
+  if (req.avoid.length)  lines.push('🚫 빼기: ' + show(req.avoid));
+  if (req.unknown.length) lines.push('❓ 이해하지 못한 부분: "' + req.unknown.map(escapeHtml).join('", "') + '"');
+  return lines;
+}
+
+function foodHasAnyTag(food, tags) {
+  return food.tags.some(t => tags.includes(t));
+}
+
+
+// ---------------------------------------------------------------
+// 1. 먹을 수 있는 음식인지 확인 (식단 유형 + 못 먹는 음식 + 요구사항의 "빼기")
 // ---------------------------------------------------------------
 function isAllowedFood(food, data) {
+  if (foodHasAnyTag(food, parseDietRequest(data.dietRequest).avoidTags)) return false;
+
   // 식단 유형
   const banned = {
     normal:     [],
@@ -110,7 +188,14 @@ function pickMainMenu(mealKey, target, data, avoidNames) {
   if (pool.length === 0) return null;
 
   // 목표보다 조금 적은 메뉴를 더 좋게 봐요 (모자란 만큼은 곁들임으로 채울 수 있어서)
-  const score = m => m.kcal <= target.kcal ? (target.kcal - m.kcal) * 0.6 : (m.kcal - target.kcal) * 1.5;
+  // 요구사항의 "더 자주 넣기"는 점수를 좋게, "줄이기"는 나쁘게 해요 (점수가 낮을수록 좋아요)
+  const req = parseDietRequest(data.dietRequest);
+  const score = m => {
+    let s = m.kcal <= target.kcal ? (target.kcal - m.kcal) * 0.6 : (m.kcal - target.kcal) * 1.5;
+    if (foodHasAnyTag(m, req.preferTags)) s -= CONFIG.diet.requestPreferBonus;
+    if (foodHasAnyTag(m, req.reduceTags)) s += CONFIG.diet.requestReducePenalty;
+    return s;
+  };
   const sorted = pool.slice().sort((a, b) => score(a) - score(b));
 
   // 가장 잘 맞는 몇 개 중에서, 방금 보여준 메뉴나 오늘 이미 쓴 메뉴는 되도록 피해서 골라요
@@ -133,7 +218,11 @@ function pickMainMenu(mealKey, target, data, avoidNames) {
 // 4. 모자란 칼로리·단백질을 곁들임으로 채우기
 // ---------------------------------------------------------------
 function addExtras(startKcal, startProtein, target, data, maxCount, forSnack, usedExtras) {
-  const allowed = EXTRAS.filter(e => isAllowedFood(e, data) && !(forSnack && e.noSnack));
+  const req = parseDietRequest(data.dietRequest);
+  let allowed = EXTRAS.filter(e => isAllowedFood(e, data) && !(forSnack && e.noSnack));
+  // 요구사항에서 "줄이기"한 곁들임은 다른 게 있으면 빼요
+  const notReduced = allowed.filter(e => !foodHasAnyTag(e, req.reduceTags));
+  if (notReduced.length >= 2) allowed = notReduced;
   // 오늘 다른 끼니에서 이미 쓴 곁들임은 되도록 피해요
   const fresh = allowed.filter(e => !usedExtras.includes(e.name));
   const pool = fresh.length >= 2 ? fresh : allowed;
@@ -159,7 +248,9 @@ function addExtras(startKcal, startProtein, target, data, maxCount, forSnack, us
       : Math.abs(remaining - a.kcal) - Math.abs(remaining - b.kcal));
 
     // 가장 잘 맞는 2개 중에서 골라서, 매번 똑같은 곁들임만 나오지 않게 해요
-    const top = options.slice(0, 2);
+    // 단, 상위 3개 안에 요구사항의 "더 자주 넣기" 음식이 있으면 그걸 골라요
+    const preferredTop = options.slice(0, 3).filter(e => foodHasAnyTag(e, req.preferTags));
+    const top = preferredTop.length > 0 ? preferredTop : options.slice(0, 2);
     const extra = top[Math.floor(dietRandom() * top.length)];
     picked.push(extra);
     kcal += extra.kcal;
@@ -381,6 +472,10 @@ function renderDayDiet(key) {
     + ' · 먹는 방식: ' + data.mealSources.map(s => SOURCE_NAME[s]).join(', ');
   if (data.avoidFoods.length > 0) {
     conditionText += '<br>뺀 음식: ' + data.avoidFoods.map(escapeHtml).join(', ');
+  }
+  if (data.dietRequest) {
+    const reqLines = describeRequest(parseDietRequest(data.dietRequest));
+    conditionText += '<br><b>요구사항 반영</b><br>' + reqLines.join('<br>');
   }
 
   let summaryHtml = '<div class="card" id="day-diet">'

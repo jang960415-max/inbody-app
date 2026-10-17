@@ -85,7 +85,11 @@ const CONFIG = {
     // 식단을 짤 기간: "분석하기"를 누른 날부터 며칠치를 짤지 (14 = 2주)
     planDays: 14,
 
-    avoidRepeatDays: 3,            // 최근 며칠 동안 나온 메인 메뉴는 되도록 다시 안 넣어요
+    // 식단 요구사항 반영 정도 (칼로리 차이로 생각하면 돼요)
+    requestPreferBonus:   250,   // "더 자주 넣기" 메뉴는 칼로리가 250kcal 더 잘 맞는 것처럼 우대해요
+    requestReducePenalty: 400,   // "줄이기" 메뉴는 칼로리가 400kcal 덜 맞는 것처럼 뒤로 미뤄요
+
+    avoidRepeatDays: 3,           // 최근 며칠 동안 나온 메인 메뉴는 되도록 다시 안 넣어요
     candidatePool: 3,    // 칼로리가 가장 맞는 메뉴 몇 개 중에서 골라 보여줄지 ("다른 식단 보기"용)
     extraThreshold: 80,    // 끼니 목표보다 이 칼로리 이상 모자라면 곁들임을 더해요
     proteinThreshold: 8,   // 끼니 목표보다 단백질이 이 g 이상 모자라도 곁들임을 더해요

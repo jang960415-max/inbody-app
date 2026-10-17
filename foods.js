@@ -66,7 +66,7 @@ const MENUS = [
   // ===================== 점심·저녁: 구내식당 =====================
   { name: '구내식당 제육볶음 백반', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['밥 1공기', '제육볶음', '된장국', '나물', '김치'],
-    kcal: 750, protein: 32, tags: ['밥', '돼지고기', '된장', '나물', '김치', '고추장'], contains: ['meat', 'fish'] },
+    kcal: 750, protein: 32, tags: ['밥', '돼지고기', '된장', '나물', '김치', '고추장', '매운'], contains: ['meat', 'fish'] },
 
   { name: '구내식당 생선구이 백반', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['밥 1공기', '고등어구이', '미역국', '나물', '김치'],
@@ -74,11 +74,11 @@ const MENUS = [
 
   { name: '구내식당 닭볶음탕 백반', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['밥 1공기', '닭볶음탕', '콩나물국', '김치'],
-    kcal: 700, protein: 38, tags: ['밥', '닭고기', '감자', '콩나물', '김치'], contains: ['meat', 'fish'] },
+    kcal: 700, protein: 38, tags: ['밥', '닭고기', '감자', '콩나물', '김치', '매운'], contains: ['meat', 'fish'] },
 
   { name: '구내식당 비빔밥', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['비빔밥 (나물, 달걀프라이)', '된장국'],
-    kcal: 650, protein: 20, tags: ['밥', '나물', '달걀', '고추장', '된장', '멸치'], contains: ['egg', 'fish'] },
+    kcal: 650, protein: 20, tags: ['밥', '나물', '달걀', '고추장', '된장', '멸치', '매운'], contains: ['egg', 'fish'] },
 
   { name: '구내식당 불고기 덮밥', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['불고기 덮밥', '맑은 국', '김치'],
@@ -86,7 +86,7 @@ const MENUS = [
 
   { name: '구내식당 산채비빔밥 (채식)', meals: ['lunch', 'dinner'], source: 'cafeteria',
     items: ['산채비빔밥 (고기·달걀 빼고)', '두부조림'],
-    kcal: 600, protein: 18, tags: ['밥', '나물', '고추장', '두부', '콩'], contains: [] },
+    kcal: 600, protein: 18, tags: ['밥', '나물', '고추장', '두부', '콩', '매운'], contains: [] },
 
   // ===================== 점심·저녁: 편의점 =====================
   { name: '편의점 샐러드 세트', meals: ['lunch', 'dinner'], source: 'convenience',
@@ -95,7 +95,7 @@ const MENUS = [
 
   { name: '편의점 도시락', meals: ['lunch', 'dinner'], source: 'convenience',
     items: ['제육 도시락 1개', '삶은 달걀 1개'],
-    kcal: 825, protein: 31, tags: ['밥', '돼지고기', '소시지', '김치', '달걀'], contains: ['meat', 'egg', 'fish'] },
+    kcal: 825, protein: 31, tags: ['밥', '돼지고기', '소시지', '김치', '달걀', '매운'], contains: ['meat', 'egg', 'fish'] },
 
   { name: '편의점 닭가슴살 한 끼', meals: ['lunch', 'dinner'], source: 'convenience',
     items: ['즉석밥 작은 공기', '닭가슴살 1팩', '삶은 달걀 2개', '컵 미역국'],
@@ -145,7 +145,7 @@ const MENUS = [
 
   { name: '소고기 쌀국수', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['소고기 쌀국수 1그릇'],
-    kcal: 500, protein: 25, tags: ['쌀국수', '소고기', '숙주'], contains: ['meat', 'fish'] },
+    kcal: 500, protein: 25, tags: ['쌀국수', '면', '소고기', '숙주', '국물'], contains: ['meat', 'fish'] },
 
   { name: '샐러드 가게 한 끼', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['닭가슴살 샐러드', '고구마 1개'],
@@ -153,11 +153,11 @@ const MENUS = [
 
   { name: '돼지국밥', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['돼지국밥 1그릇 (밥 포함)', '부추무침'],
-    kcal: 700, protein: 35, tags: ['돼지고기', '밥', '부추', '새우젓'], contains: ['meat', 'fish'] },
+    kcal: 700, protein: 35, tags: ['돼지고기', '밥', '부추', '새우젓', '국물'], contains: ['meat', 'fish'] },
 
   { name: '소고기 샤브샤브', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['소고기 샤브샤브 (고기·채소)', '죽 반 그릇'],
-    kcal: 600, protein: 40, tags: ['소고기', '채소', '버섯', '죽', '밥'], contains: ['meat'] },
+    kcal: 600, protein: 40, tags: ['소고기', '채소', '버섯', '죽', '밥', '국물'], contains: ['meat'] },
 
   { name: '생선구이 정식 (외식)', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['생선구이 (고등어 또는 삼치)', '밥 1공기', '된장찌개'],
@@ -173,7 +173,7 @@ const MENUS = [
 
   { name: '채식 비빔밥 (외식)', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['채소 비빔밥 (고기 빼고, 달걀 포함)'],
-    kcal: 580, protein: 16, tags: ['밥', '나물', '채소', '달걀', '고추장'], contains: ['egg'] },
+    kcal: 580, protein: 16, tags: ['밥', '나물', '채소', '달걀', '고추장', '매운'], contains: ['egg'] },
 
   { name: '두부 요리 식당 (채식)', meals: ['lunch', 'dinner'], source: 'eatOut',
     items: ['두부구이·두부조림 정식 (밥 포함)'],
@@ -200,3 +200,50 @@ const EXTRAS = [
   { name: '현미밥 반 공기',       kcal: 155, protein: 3,  tags: ['현미', '밥'],                    contains: [], noSnack: true },
   { name: '방울토마토 한 컵',     kcal: 30,  protein: 1,  tags: ['토마토', '방울토마토'],          contains: [] }
 ];
+
+
+// =====================================================================
+//  📝 식단 요구사항 단어 사전
+//  "식단 요구사항" 칸에 적은 문장에서 아래 단어를 찾아서 식단에 반영해요.
+//  (문장을 진짜로 이해하는 건 아니고, 정해둔 단어를 찾는 방식이에요)
+// =====================================================================
+
+// 묶음 단어: 왼쪽 단어가 나오면 오른쪽 재료(tags)가 들어간 메뉴에 적용해요
+// 메뉴의 tags 에 있는 단어(예: 닭가슴살, 연어, 두부)는 따로 적지 않아도 바로 알아들어요.
+const REQUEST_GROUPS = {
+  '고기':     ['돼지고기', '소고기', '닭고기'],
+  '육류':     ['돼지고기', '소고기', '닭고기'],
+  '돼지':     ['돼지고기'],
+  '닭':       ['닭고기'],
+  '치킨':     ['닭고기'],
+  '생선':     ['생선', '연어', '고등어', '참치', '삼치'],
+  '해산물':   ['생선', '연어', '고등어', '참치', '삼치', '맛살', '새우젓'],
+  '매운':     ['매운'],
+  '맵':       ['매운'],
+  '국물':     ['국물'],
+  '국밥':     ['국물'],
+  '면':       ['면'],
+  '국수':     ['면'],
+  '빵':       ['빵'],
+  '밀가루':   ['밀가루', '빵'],
+  '유제품':   ['유제품', '우유', '요거트', '치즈'],
+  '채소':     ['채소', '샐러드', '나물', '쌈채소'],
+  '야채':     ['채소', '샐러드', '나물', '쌈채소'],
+  '샐러드':   ['샐러드'],
+  '탄수화물': ['밥', '빵', '고구마', '면'],
+  '밥':       ['밥'],
+  '쌀':       ['밥'],
+  '콩':       ['콩', '두부', '두유'],
+  '과일':     ['바나나', '사과'],
+  '커피':     ['커피']
+};
+
+// 문장 안에 이런 말이 있으면 → 그 문장 속 음식을 어떻게 다룰지 정해요
+const REQUEST_MARKERS = {
+  // 빼기 (아예 넣지 않아요)
+  avoid:  ['빼', '싫', '안 먹', '안먹', '못 먹', '못먹', '없이', '말고', '제외', '금지', '알레르기', '안 좋', '별로', '않', '안 맵'],
+  // 줄이기 (되도록 덜 넣어요)
+  reduce: ['줄', '적게', '덜', '가끔', '조금만', '자제'],
+  // 늘리기 (더 자주 넣어요) — 아무 말도 없으면 늘리기로 봐요
+  prefer: ['좋', '많이', '위주', '자주', '먹고 싶', '먹고싶', '넣어', '추가', '늘려', '주로']
+};

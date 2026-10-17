@@ -78,6 +78,7 @@ function readForm() {
     meals:          readChoices('meals'),        // ["breakfast", "lunch", ...]
     mealSources:    readChoices('mealSources'),  // ["cafeteria", "convenience", ...]
     dietType:       readChoice('dietType'),      // normal / vegetarian / vegan
+    dietRequest:    document.getElementById('dietRequest').value.trim(),   // 식단 요구사항 (자유 입력)
     // "우유, 땅콩" → ["우유", "땅콩"]
     avoidFoods: avoidText.split(',').map(s => s.trim()).filter(s => s !== '')
   };
@@ -704,6 +705,23 @@ document.getElementById('inbody-form').addEventListener('input', event => {
 
 
 // ---------------------------------------------------------------
+// 12-1. 식단 요구사항을 어떻게 이해했는지 바로 보여주기 (diet.js 의 parseDietRequest)
+// ---------------------------------------------------------------
+function updateRequestPreview() {
+  const box = document.getElementById('request-preview');
+  const text = document.getElementById('dietRequest').value.trim();
+  if (text === '') {
+    box.textContent = '요구사항을 적으면 어떻게 이해했는지 여기에 보여드려요.';
+    box.classList.remove('filled');
+    return;
+  }
+  const lines = describeRequest(parseDietRequest(text));
+  box.innerHTML = '<b>이렇게 이해했어요</b><ul>' + lines.map(l => '<li>' + l + '</li>').join('') + '</ul>';
+  box.classList.add('filled');
+}
+document.getElementById('dietRequest').addEventListener('input', updateRequestPreview);
+
+// ---------------------------------------------------------------
 // 13. 앱을 열 때 defaults.js 의 기본값을 입력 화면에 채워요
 // ---------------------------------------------------------------
 function applyDefaults() {
@@ -733,6 +751,7 @@ function applyDefaults() {
   document.getElementById('equipment-field').hidden = readChoice('place') !== 'home';
   updateDaysCount();
   updateTotalMinutes();
+  updateRequestPreview();
 }
 
 applyDefaults();
