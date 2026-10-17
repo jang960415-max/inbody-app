@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- 휴대폰 화면 크기에 맞추는 설정 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>인바디 식단·운동 도우미</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>인바디 식단·운동 도우미</h1>
+  </header>
+
+  <!-- 위쪽 탭 버튼 -->
+  <nav class="tabs">
+    <button class="tab active" data-tab="input">입력</button>
+    <button class="tab" data-tab="analysis">분석</button>
+    <button class="tab" data-tab="diet">식단</button>
+    <button class="tab" data-tab="workout">운동</button>
+    <button class="tab" data-tab="records">기록</button>
+  </nav>
+
+  <main>
+
+    <!-- ========== ① 입력 화면 ========== -->
+    <section id="tab-input" class="tab-page active">
+      <form id="inbody-form" novalidate>
+
+        <div class="card">
+          <h2>기본 정보</h2>
+          <div class="field">
+            <span class="label">성별</span>
+            <div class="choices">
+              <label><input type="radio" name="sex" value="male"> 남성</label>
+              <label><input type="radio" name="sex" value="female"> 여성</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="age">나이 (세)</label>
+            <input type="number" id="age" inputmode="numeric" placeholder="예: 30">
+          </div>
+          <div class="field">
+            <label class="label" for="height">키 (cm)</label>
+            <input type="number" id="height" inputmode="decimal" step="0.1" placeholder="예: 170">
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>인바디 수치</h2>
+          <div class="field">
+            <label class="label" for="weight">체중 (kg)</label>
+            <input type="number" id="weight" inputmode="decimal" step="0.1" placeholder="예: 70.5">
+          </div>
+          <div class="field">
+            <label class="label" for="skeletalMuscle">골격근량 (kg)</label>
+            <input type="number" id="skeletalMuscle" inputmode="decimal" step="0.1" placeholder="예: 30.2">
+          </div>
+          <div class="field">
+            <label class="label" for="fatMass">체지방량 (kg)</label>
+            <input type="number" id="fatMass" inputmode="decimal" step="0.1" placeholder="예: 15.3">
+          </div>
+          <div class="field">
+            <label class="label" for="bodyFatPercent">체지방률 (%)</label>
+            <input type="number" id="bodyFatPercent" inputmode="decimal" step="0.1" placeholder="예: 21.7">
+          </div>
+          <div class="field">
+            <label class="label" for="bmi">BMI</label>
+            <input type="number" id="bmi" inputmode="decimal" step="0.1" placeholder="예: 24.4">
+          </div>
+          <div class="field">
+            <label class="label" for="bmr">기초대사량 (kcal)</label>
+            <input type="number" id="bmr" inputmode="numeric" placeholder="예: 1600">
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>선택 항목 <small>(비워둬도 돼요)</small></h2>
+          <div class="field">
+            <label class="label" for="visceralFat">내장지방 레벨</label>
+            <input type="number" id="visceralFat" inputmode="numeric" placeholder="예: 7">
+          </div>
+          <div class="field">
+            <label class="label" for="abdominalFat">복부지방률</label>
+            <input type="number" id="abdominalFat" inputmode="decimal" step="0.01" placeholder="예: 0.88">
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>목표와 생활</h2>
+          <div class="field">
+            <span class="label">목표</span>
+            <div class="choices">
+              <label><input type="radio" name="goal" value="lose"> 체중 감량</label>
+              <label><input type="radio" name="goal" value="gain"> 근육 증가</label>
+              <label><input type="radio" name="goal" value="maintain"> 유지</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">평소 활동량</span>
+            <div class="choices">
+              <label><input type="radio" name="activity" value="sedentary"> 거의 안 움직임</label>
+              <label><input type="radio" name="activity" value="light"> 가볍게</label>
+              <label><input type="radio" name="activity" value="moderate"> 보통</label>
+              <label><input type="radio" name="activity" value="active"> 많이</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">운동 경험</span>
+            <div class="choices">
+              <label><input type="radio" name="experience" value="none"> 처음</label>
+              <label><input type="radio" name="experience" value="under6"> 6개월 미만</label>
+              <label><input type="radio" name="experience" value="over6"> 6개월 이상</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="workoutDays">일주일에 운동할 수 있는 날 (일)</label>
+            <input type="number" id="workoutDays" inputmode="numeric" placeholder="예: 3">
+          </div>
+          <div class="field">
+            <label class="label" for="workoutMinutes">하루 운동 가능 시간 (분)</label>
+            <input type="number" id="workoutMinutes" inputmode="numeric" placeholder="예: 60">
+          </div>
+          <div class="field">
+            <span class="label">운동 장소</span>
+            <div class="choices">
+              <label><input type="radio" name="place" value="gym"> 헬스장</label>
+              <label><input type="radio" name="place" value="home"> 집</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="avoidFoods">못 먹는 음식 <small>(쉼표로 구분, 비워둬도 돼요)</small></label>
+            <input type="text" id="avoidFoods" placeholder="예: 우유, 땅콩, 오이">
+          </div>
+        </div>
+
+        <!-- 잘못 입력한 내용이 여기에 표시돼요 -->
+        <div id="error-box" class="error-box" hidden></div>
+
+        <button type="submit" class="primary-btn">분석하기</button>
+      </form>
+    </section>
+
+    <!-- ========== ② 분석 화면 ========== -->
+    <section id="tab-analysis" class="tab-page">
+      <div id="analysis-result">
+        <div class="card empty">먼저 <b>입력</b> 탭에서 인바디 결과를 넣고 "분석하기"를 눌러주세요.</div>
+      </div>
+    </section>
+
+    <!-- ========== ③~⑤ 다음 단계에서 만들 화면 ========== -->
+    <section id="tab-diet" class="tab-page">
+      <div class="card empty">식단표는 다음 단계에서 만들어요.</div>
+    </section>
+    <section id="tab-workout" class="tab-page">
+      <div class="card empty">운동표는 다음 단계에서 만들어요.</div>
+    </section>
+    <section id="tab-records" class="tab-page">
+      <div class="card empty">기록 저장은 다음 단계에서 만들어요.</div>
+    </section>
+
+  </main>
+
+  <footer class="disclaimer">
+    이 앱은 참고용이며 의료 조언이 아닙니다.<br>
+    질병이 있거나 약을 먹는 경우 전문가와 상담하세요.
+  </footer>
+
+  <!-- config.js를 먼저 불러와야 app.js에서 숫자를 쓸 수 있어요 -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

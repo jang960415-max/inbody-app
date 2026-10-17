@@ -1,0 +1,207 @@
+/* =========================================
+   색깔 모음 (여기 색만 바꾸면 전체가 바뀌어요)
+   ========================================= */
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #1f2933;
+  --muted: #6b7785;
+  --line: #e1e5ea;
+  --main: #2f7d6d;        /* 대표 색 (초록) */
+  --main-light: #e3f1ed;
+  --good: #2f7d6d;
+  --warn: #c27a12;
+  --bad: #c0392b;
+  --warn-bg: #fdf3e2;
+  --bad-bg: #fbeaea;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* ---------- 머리말 ---------- */
+.app-header {
+  background: var(--main);
+  color: #fff;
+  padding: 14px 16px;
+}
+.app-header h1 { margin: 0; font-size: 1.15rem; }
+
+/* ---------- 탭 ---------- */
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font-size: 0.95rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+}
+.tab.active {
+  color: var(--main);
+  font-weight: bold;
+  border-bottom-color: var(--main);
+}
+
+/* ---------- 본문 ---------- */
+main {
+  max-width: 640px;   /* 컴퓨터에서도 너무 넓어지지 않게 */
+  margin: 0 auto;
+  padding: 16px;
+}
+.tab-page { display: none; }
+.tab-page.active { display: block; }
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.card h2 { margin: 0 0 12px; font-size: 1.05rem; }
+.card h2 small, .label small { color: var(--muted); font-weight: normal; font-size: 0.85rem; }
+.card.empty { color: var(--muted); text-align: center; padding: 32px 16px; }
+
+/* ---------- 입력칸 ---------- */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
+
+input[type="number"], input[type="text"] {
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 16px;   /* 16px 미만이면 아이폰에서 화면이 저절로 확대돼요 */
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+input:focus { outline: 2px solid var(--main); border-color: var(--main); }
+input.invalid { border-color: var(--bad); background: var(--bad-bg); }
+
+/* 버튼처럼 생긴 선택지 */
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices label {
+  flex: 1 1 auto;
+  text-align: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.choices input { position: absolute; opacity: 0; pointer-events: none; }
+.choices label:has(input:checked) {
+  background: var(--main-light);
+  border-color: var(--main);
+  color: var(--main);
+  font-weight: bold;
+}
+.choices.invalid label { border-color: var(--bad); }
+
+.primary-btn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #fff;
+  background: var(--main);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.primary-btn:active { opacity: 0.85; }
+
+.error-box {
+  background: var(--bad-bg);
+  color: var(--bad);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.error-box ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* ---------- 분석 결과 ---------- */
+.metric {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.metric:last-child { border-bottom: none; padding-bottom: 0; }
+.metric:first-of-type { padding-top: 0; }
+.metric-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.metric-name { font-weight: 600; }
+.metric-value { font-weight: bold; font-size: 1.05rem; }
+.metric-text { margin: 4px 0 0; color: var(--muted); font-size: 0.93rem; }
+
+.badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.badge.good { background: var(--main-light); color: var(--good); }
+.badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.bad  { background: var(--bad-bg);  color: var(--bad); }
+.badge.info { background: #eef1f4; color: var(--muted); }
+
+.big-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--main);
+  text-align: center;
+  margin: 4px 0 12px;
+}
+.big-number span { font-size: 1rem; color: var(--muted); font-weight: normal; }
+
+.steps { margin: 0; padding-left: 20px; font-size: 0.93rem; }
+.steps li { margin-bottom: 6px; }
+
+.notice {
+  background: var(--warn-bg);
+  color: #7a4d0b;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  margin-top: 12px;
+}
+
+/* 탄·단·지 막대 */
+.macro-row { margin-bottom: 12px; }
+.macro-row:last-child { margin-bottom: 0; }
+.macro-top { display: flex; justify-content: space-between; font-size: 0.95rem; }
+.macro-bar { height: 10px; background: #eef1f4; border-radius: 999px; overflow: hidden; margin-top: 4px; }
+.macro-bar div { height: 100%; border-radius: 999px; }
+.macro-carb    { background: #e0a83a; }
+.macro-protein { background: #2f7d6d; }
+.macro-fat     { background: #8b6fc4; }
+
+/* ---------- 맨 아래 안내 문구 ---------- */
+.disclaimer {
+  max-width: 640px;
+  margin: 8px auto 0;
+  padding: 20px 16px 32px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
