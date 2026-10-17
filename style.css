@@ -93,20 +93,6 @@ input[type="number"], input[type="text"] {
   border-radius: 8px;
   background: #fff;
 }
-textarea {
-  width: 100%;
-  padding: 11px 12px;
-  font-size: 16px;
-  font-family: inherit;
-  line-height: 1.5;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  resize: vertical;
-}
-textarea:focus { outline: 2px solid var(--main); border-color: var(--main); }
-#request-preview { margin: 8px 0 0; }
-#request-preview ul { margin: 4px 0 0; padding-left: 18px; }
-
 input:focus { outline: 2px solid var(--main); border-color: var(--main); }
 input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 
@@ -290,7 +276,6 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .macro-fat     { background: #8b6fc4; }
 
 /* ---------- 식단 달력 ---------- */
-.cal-month { margin: 14px 0 6px; font-size: 0.95rem; }
 .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-head { text-align: center; font-size: 0.8rem; font-weight: 600; color: var(--muted); padding: 4px 0; }
 .cal-cell {
@@ -309,7 +294,7 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .cal-cell.blank { visibility: hidden; }
 .cal-cell.no-plan { color: #b8c0c8; }
 .cal-cell.has-plan { background: var(--main-light); cursor: pointer; }
-.cal-cell.has-plan:hover { border-color: var(--main); }
+.cal-cell:hover { border-color: var(--main); }
 .cal-cell.selected { background: var(--main); color: #fff; }
 .cal-cell.selected .cal-kcal { color: #fff; }
 .cal-cell.today { border-color: var(--warn); }
@@ -319,27 +304,83 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .cal-kcal { font-size: 0.62rem; color: var(--main); line-height: 1.2; }
 #day-diet { scroll-margin-top: 56px; }   /* 위쪽 탭에 가려지지 않게 */
 
-/* ---------- 식단표 ---------- */
+/* 달력 위 이전 달 / 다음 달 */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.cal-nav h2 { margin: 0; text-align: center; }
+.cal-nav-btn {
+  width: 40px; height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--main);
+  cursor: pointer;
+}
+.cal-cell { cursor: pointer; }
+
+/* ---------- 식단 기록 ---------- */
 .meal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .meal-head h2 { margin: 0; }
 .meal-total { font-weight: bold; color: var(--main); font-size: 0.95rem; }
-.meal-target { margin: 2px 0 12px; font-size: 0.85rem; color: var(--muted); }
-.menu-name { font-weight: 600; margin-bottom: 4px; }
-.source-tag {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: normal;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: #eef1f4;
-  color: var(--muted);
-  vertical-align: middle;
+.meal-target { margin: 2px 0 8px; font-size: 0.85rem; color: var(--muted); }
+
+/* 먹은 음식 목록 */
+.log-list { list-style: none; margin: 8px 0; padding: 0; }
+.log-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
 }
-.menu-items { margin: 4px 0; padding-left: 20px; font-size: 0.93rem; }
-.menu-items li { margin-bottom: 2px; }
-.menu-items small { color: var(--muted); }
-.menu-sub { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
-.extras-title { margin-top: 12px; font-weight: 600; font-size: 0.9rem; color: var(--main); }
+.log-main { flex: 1; min-width: 0; }
+.log-main small { color: var(--muted); }
+.log-nums { font-size: 0.82rem; color: var(--muted); }
+.del-btn {
+  flex: none;
+  width: 32px; height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bad-bg);
+  color: var(--bad);
+  cursor: pointer;
+}
+
+/* 음식 입력 줄: 이름 | 인분 | 추가 */
+.add-row { display: flex; gap: 6px; margin-top: 10px; }
+.add-row .food-name { flex: 1; min-width: 0; }
+.add-row .food-qty { width: 64px; flex: none; text-align: center; }
+.add-btn {
+  flex: none;
+  padding: 0 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--main);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+.food-hint { margin: 6px 0 0; font-size: 0.82rem; color: var(--muted); }
+.food-hint.hint-warn { color: var(--warn); }
+
+/* 목록에 없는 음식 직접 입력 */
+.manual-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.manual-row[hidden] { display: none; }   /* 목록에 없는 음식일 때만 보여요 */
+.manual-row label { font-size: 0.78rem; color: var(--muted); }
+.manual-row input { margin-top: 2px; padding: 9px 6px; }
+
+/* 맨 아래 저장 버튼 */
+.save-status { margin: 0 0 10px; font-size: 0.9rem; color: var(--muted); text-align: center; }
+.save-status.unsaved { color: var(--warn); font-weight: 600; }
+.save-status.saved { color: var(--good); font-weight: 600; }
+.primary-btn:disabled { background: #b8c0c8; cursor: default; }
+
+/* 권장량 대비 막대 색: 부족 / 적당 / 초과 */
+.macro-bar .fill-low  { background: var(--warn); }
+.macro-bar .fill-good { background: var(--good); }
+.macro-bar .fill-over { background: var(--bad); }
+.pct-low  { color: var(--warn); }
+.pct-good { color: var(--good); }
+.pct-over { color: var(--bad); }
 
 /* ---------- 맨 아래 안내 문구 ---------- */
 .disclaimer {

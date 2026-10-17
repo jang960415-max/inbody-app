@@ -179,44 +179,6 @@
               <label><input type="checkbox" name="injuries" value="ankle"> 발목</label>
             </div>
           </div>
-
-          <h3 class="sub">🍚 식사</h3>
-          <div class="field">
-            <span class="label">평소 챙겨 먹는 끼니 <small>(여러 개 선택)</small></span>
-            <div class="choices">
-              <label><input type="checkbox" name="meals" value="breakfast"> 아침</label>
-              <label><input type="checkbox" name="meals" value="lunch"> 점심</label>
-              <label><input type="checkbox" name="meals" value="dinner"> 저녁</label>
-              <label><input type="checkbox" name="meals" value="snack"> 간식</label>
-            </div>
-          </div>
-          <div class="field">
-            <span class="label">주로 어떻게 먹나요? <small>(여러 개 선택)</small></span>
-            <div class="choices">
-              <label><input type="checkbox" name="mealSources" value="cook"> 직접 요리</label>
-              <label><input type="checkbox" name="mealSources" value="cafeteria"> 구내식당</label>
-              <label><input type="checkbox" name="mealSources" value="convenience"> 편의점</label>
-              <label><input type="checkbox" name="mealSources" value="eatOut"> 외식·배달</label>
-            </div>
-          </div>
-          <div class="field">
-            <span class="label">식단 유형</span>
-            <div class="choices">
-              <label><input type="radio" name="dietType" value="normal"> 일반</label>
-              <label><input type="radio" name="dietType" value="vegetarian"> 채식 <small>(달걀·유제품 O)</small></label>
-              <label><input type="radio" name="dietType" value="vegan"> 완전 채식</label>
-            </div>
-          </div>
-          <div class="field">
-            <label class="label" for="avoidFoods">못 먹는 음식 <small>(알레르기·싫어하는 음식, 쉼표로 구분, 비워둬도 돼요)</small></label>
-            <input type="text" id="avoidFoods" placeholder="예: 우유, 땅콩, 오이">
-          </div>
-          <div class="field">
-            <label class="label" for="dietRequest">식단 요구사항 <small>(자유롭게 적어주세요, 비워둬도 돼요)</small></label>
-            <textarea id="dietRequest" rows="3" placeholder="예: 닭가슴살이랑 생선 위주로, 빵은 줄이고 매운 음식은 빼줘"></textarea>
-            <!-- 적은 내용을 앱이 어떻게 이해했는지 바로 보여줘요 -->
-            <div id="request-preview" class="total-line">요구사항을 적으면 어떻게 이해했는지 여기에 보여드려요.</div>
-          </div>
         </div>
 
         <!-- 잘못 입력한 내용이 여기에 표시돼요 -->
@@ -233,8 +195,7 @@
       </div>
     </section>
 
-    <!-- ========== ③~⑤ 다음 단계에서 만들 화면 ========== -->
-    <!-- ========== ③ 식단 화면 ========== -->
+    <!-- ========== ③ 식단 기록 화면 (diet.js) ========== -->
     <section id="tab-diet" class="tab-page">
       <div id="diet-result">
         <div class="card empty">먼저 <b>입력</b> 탭에서 정보를 넣고 "분석하기"를 눌러주세요.</div>
@@ -255,6 +216,8 @@
   </footer>
 
   <!-- config.js를 먼저 불러와야 app.js에서 숫자를 쓸 수 있어요 -->
+  <!-- 인증키 등 비밀 정보 (git에 저장하지 않는 파일, 없어도 앱은 동작해요) -->
+  <script src="secrets.js"></script>
   <script src="config.js"></script>
   <!-- 입력 화면에 미리 채울 기본값 (파일이 없어도 앱은 동작해요) -->
   <script src="defaults.js"></script>

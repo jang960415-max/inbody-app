@@ -49,7 +49,6 @@ function readChoices(name) {
 }
 
 function readForm() {
-  const avoidText = document.getElementById('avoidFoods').value;
   const place = readChoice('place');
   return {
     sex:            readChoice('sex'),
@@ -74,13 +73,7 @@ function readForm() {
     place:          place,
     // 운동 기구는 "집"에서 운동할 때만 써요
     equipment:      place === 'home' ? readChoices('equipment') : [],
-    injuries:       readChoices('injuries'),     // ["none"] 또는 ["knee", "back"]
-    meals:          readChoices('meals'),        // ["breakfast", "lunch", ...]
-    mealSources:    readChoices('mealSources'),  // ["cafeteria", "convenience", ...]
-    dietType:       readChoice('dietType'),      // normal / vegetarian / vegan
-    dietRequest:    document.getElementById('dietRequest').value.trim(),   // 식단 요구사항 (자유 입력)
-    // "우유, 땅콩" → ["우유", "땅콩"]
-    avoidFoods: avoidText.split(',').map(s => s.trim()).filter(s => s !== '')
+    injuries:       readChoices('injuries')      // ["none"] 또는 ["knee", "back"]
   };
 }
 
@@ -107,16 +100,14 @@ const FIELD_INFO = {
 
 const CHOICE_INFO = {
   sex: '성별', weightGoal: '체중 목표', muscleGoal: '근육 목표', activity: '평소 활동량',
-  experience: '운동 경험', place: '운동 장소', dietType: '식단 유형'
+  experience: '운동 경험', place: '운동 장소'
 };
 
 // 여러 개 고르는 선택지
 const MULTI_CHOICE_INFO = {
   workoutDays: '운동할 수 있는 요일',
   equipment:   '집에 있는 운동 기구',
-  injuries:    '아프거나 불편한 부위',
-  meals:       '평소 챙겨 먹는 끼니',
-  mealSources: '주로 먹는 방식'
+  injuries:    '아프거나 불편한 부위'
 };
 
 const OPTIONAL_FIELDS = ['visceralFat', 'abdominalFat'];
@@ -149,11 +140,6 @@ function validate(data) {
         + (hasNone ? ' 해당하는 게 없으면 "없음"을 골라 주세요.' : ''));
       badFields.push(key);
     }
-  }
-  // 간식만 고르면 하루 식단을 짤 수 없어요
-  if (data.meals.length > 0 && !data.meals.some(m => m !== 'snack')) {
-    errors.push('끼니는 아침·점심·저녁 중 하나 이상 골라 주세요.');
-    badFields.push('meals');
   }
 
   // (2) 숫자가 비었거나 말이 안 되는 범위인지
@@ -569,28 +555,32 @@ function renderAnalysis(data, nutrition) {
     + '</p>'
     + '</div>'
 
-    + '<button type="button" class="primary-btn" onclick="showTab(\'diet\')">🍚 이 기준으로 짠 식단표 보기</button>';
+    + '<button type="button" class="primary-btn" onclick="showTab(\'diet\')">🍚 이 기준으로 식단 기록하기</button>';
 }
 
 
 // ---------------------------------------------------------------
 // 7. "분석하기" 버튼을 눌렀을 때
 // ---------------------------------------------------------------
-document.getElementById('inbody-form').addEventListener('submit', event => {
-  event.preventDefault();   // 페이지가 새로고침되지 않게 막기
-
+// silent: true 이면 오류 표시나 탭 이동 없이 조용히 분석만 해요 (앱을 열 때 사용)
+function runAnalysis(silent) {
   const data = readForm();
   const { errors, badFields } = validate(data);
-  showErrors(errors, badFields);
-  if (errors.length > 0) return;
+  if (!silent) showErrors(errors, badFields);
+  if (errors.length > 0) return false;
 
   data.totalWorkoutMinutes = data.workoutSets * data.minutesPerSet;   // 운동표에서 사용
   const nutrition = calculateNutrition(data);
   latestResult = { data, nutrition };
 
   renderAnalysis(data, nutrition);
-  renderDiet(true);   // 식단표도 새로 만들어둬요 (diet.js)
-  showTab('analysis');
+  renderDiet();   // 식단 기록 화면의 목표값도 새로 맞춰요 (diet.js)
+  return true;
+}
+
+document.getElementById('inbody-form').addEventListener('submit', event => {
+  event.preventDefault();   // 페이지가 새로고침되지 않게 막기
+  if (runAnalysis(false)) showTab('analysis');
 });
 
 // ---------------------------------------------------------------
@@ -705,23 +695,6 @@ document.getElementById('inbody-form').addEventListener('input', event => {
 
 
 // ---------------------------------------------------------------
-// 12-1. 식단 요구사항을 어떻게 이해했는지 바로 보여주기 (diet.js 의 parseDietRequest)
-// ---------------------------------------------------------------
-function updateRequestPreview() {
-  const box = document.getElementById('request-preview');
-  const text = document.getElementById('dietRequest').value.trim();
-  if (text === '') {
-    box.textContent = '요구사항을 적으면 어떻게 이해했는지 여기에 보여드려요.';
-    box.classList.remove('filled');
-    return;
-  }
-  const lines = describeRequest(parseDietRequest(text));
-  box.innerHTML = '<b>이렇게 이해했어요</b><ul>' + lines.map(l => '<li>' + l + '</li>').join('') + '</ul>';
-  box.classList.add('filled');
-}
-document.getElementById('dietRequest').addEventListener('input', updateRequestPreview);
-
-// ---------------------------------------------------------------
 // 13. 앱을 열 때 defaults.js 의 기본값을 입력 화면에 채워요
 // ---------------------------------------------------------------
 function applyDefaults() {
@@ -751,7 +724,10 @@ function applyDefaults() {
   document.getElementById('equipment-field').hidden = readChoice('place') !== 'home';
   updateDaysCount();
   updateTotalMinutes();
-  updateRequestPreview();
 }
 
 applyDefaults();
+
+// 기본값이 문제없으면 앱을 열자마자 분석해둬요
+// (식단 기록 화면에서 하루 권장 칼로리·영양소를 바로 쓸 수 있게)
+runAnalysis(true);
