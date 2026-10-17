@@ -116,6 +116,21 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
   font-weight: bold;
 }
 .choices.invalid label { border-color: var(--bad); }
+.choices label small { font-size: 0.78rem; color: var(--muted); font-weight: normal; }
+
+/* 요일 선택: 7칸을 한 줄에 */
+.choices.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.choices.days label { padding: 10px 0; }
+
+/* 목표와 생활 카드 안의 작은 제목 */
+.sub {
+  margin: 22px 0 12px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+  font-size: 0.98rem;
+  color: var(--main);
+}
+.card h2 + .sub { margin-top: 0; padding-top: 0; border-top: none; }
 
 /* 총 운동 시간 자동 계산 줄 */
 .total-line {
@@ -175,6 +190,51 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .badge.warn { background: var(--warn-bg); color: var(--warn); }
 .badge.bad  { background: var(--bad-bg);  color: var(--bad); }
 .badge.info { background: #eef1f4; color: var(--muted); }
+
+/* 표준 이하 / 표준 / 표준 이상 막대 그래프 */
+.range-bar { margin-top: 10px; }
+.range-track {
+  position: relative;
+  display: flex;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.seg { flex: 1; }
+.seg + .seg { border-left: 2px solid #fff; }
+.seg-warn   { background: var(--warn-bg); }
+.seg-normal { background: var(--main-light); }
+.seg-bad    { background: var(--bad-bg); }
+.seg-good   { background: var(--main-light); }
+.range-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 999px;
+  opacity: 0.85;
+}
+/* 채워진 막대 위에도 구간 경계선이 보이게 */
+.range-track::before, .range-track::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: #fff;
+  z-index: 1;
+}
+.range-track::before { left: calc(33.33% - 1px); }
+.range-track::after  { left: calc(66.67% - 1px); }
+.fill-warn { background: var(--warn); }
+.fill-good { background: var(--good); }
+.fill-bad  { background: var(--bad); }
+
+/* 구간 경계 숫자 */
+.range-ticks { position: relative; height: 16px; font-size: 0.75rem; color: var(--muted); }
+.range-ticks span { position: absolute; top: 1px; transform: translateX(-50%); }
+/* 구간 이름 */
+.range-labels { display: flex; font-size: 0.75rem; color: var(--muted); }
+.range-labels span { flex: 1; text-align: center; }
+
+.footnote { margin: 14px 0 0; font-size: 0.82rem; color: var(--muted); }
 
 .big-number {
   font-size: 2rem;

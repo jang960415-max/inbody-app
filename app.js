@@ -42,8 +42,15 @@ function readChoice(name) {
   return checked ? checked.value : null;
 }
 
+// 여러 개 고르는 선택지(체크박스) 읽기 → ["mon", "wed"] 같은 목록
+function readChoices(name) {
+  return Array.from(document.querySelectorAll('input[name="' + name + '"]:checked'))
+    .map(input => input.value);
+}
+
 function readForm() {
   const avoidText = document.getElementById('avoidFoods').value;
+  const place = readChoice('place');
   return {
     sex:            readChoice('sex'),
     age:            readNumber('age'),
@@ -55,15 +62,22 @@ function readForm() {
     bmi:            readNumber('bmi'),
     bmr:            readNumber('bmr'),
     visceralFat:    readNumber('visceralFat'),   // 선택
-    abdominalFat:   readNumber('abdominalFat'),  // 선택
+    // 선택. 0을 넣으면 입력하지 않은 것으로 봐요
+    abdominalFat:   readNumber('abdominalFat') === 0 ? null : readNumber('abdominalFat'),
     weightGoal:     readChoice('weightGoal'),   // lose / maintain / gain
     muscleGoal:     readChoice('muscleGoal'),   // gain / keep
     activity:       readChoice('activity'),
     experience:     readChoice('experience'),
-    workoutDays:    readNumber('workoutDays'),
+    workoutDays:    readChoices('workoutDays'),  // ["mon", "wed", "fri"]
     workoutSets:    readNumber('workoutSets'),
     minutesPerSet:  readNumber('minutesPerSet'),
-    place:          readChoice('place'),
+    place:          place,
+    // 운동 기구는 "집"에서 운동할 때만 써요
+    equipment:      place === 'home' ? readChoices('equipment') : [],
+    injuries:       readChoices('injuries'),     // ["none"] 또는 ["knee", "back"]
+    meals:          readChoices('meals'),        // ["breakfast", "lunch", ...]
+    mealSources:    readChoices('mealSources'),  // ["cafeteria", "convenience", ...]
+    dietType:       readChoice('dietType'),      // normal / vegetarian / vegan
     // "우유, 땅콩" → ["우유", "땅콩"]
     avoidFoods: avoidText.split(',').map(s => s.trim()).filter(s => s !== '')
   };
@@ -86,14 +100,22 @@ const FIELD_INFO = {
   bmr:            { name: '기초대사량',      unit: 'kcal' },
   visceralFat:    { name: '내장지방 레벨',   unit: '' },
   abdominalFat:   { name: '복부지방률',      unit: '' },
-  workoutDays:    { name: '운동할 수 있는 날', unit: '일' },
   workoutSets:    { name: '하루 운동 세트 수', unit: '개' },
   minutesPerSet:  { name: '세트마다 운동 가능 시간', unit: '분' }
 };
 
 const CHOICE_INFO = {
   sex: '성별', weightGoal: '체중 목표', muscleGoal: '근육 목표', activity: '평소 활동량',
-  experience: '운동 경험', place: '운동 장소'
+  experience: '운동 경험', place: '운동 장소', dietType: '식단 유형'
+};
+
+// 여러 개 고르는 선택지
+const MULTI_CHOICE_INFO = {
+  workoutDays: '운동할 수 있는 요일',
+  equipment:   '집에 있는 운동 기구',
+  injuries:    '아프거나 불편한 부위',
+  meals:       '평소 챙겨 먹는 끼니',
+  mealSources: '주로 먹는 방식'
 };
 
 const OPTIONAL_FIELDS = ['visceralFat', 'abdominalFat'];
@@ -115,6 +137,22 @@ function validate(data) {
       errors.push(withJosa(CHOICE_INFO[key], '을', '를') + ' 선택해 주세요.');
       badFields.push(key);
     }
+  }
+
+  // (1-2) 여러 개 고르는 선택지에서 하나 이상 골랐는지
+  for (const key in MULTI_CHOICE_INFO) {
+    if (key === 'equipment' && data.place !== 'home') continue;   // 집 운동일 때만 확인
+    if (data[key].length === 0) {
+      const hasNone = document.querySelector('input[name="' + key + '"][value="none"]');
+      errors.push(withJosa(MULTI_CHOICE_INFO[key], '을', '를') + ' 하나 이상 골라 주세요.'
+        + (hasNone ? ' 해당하는 게 없으면 "없음"을 골라 주세요.' : ''));
+      badFields.push(key);
+    }
+  }
+  // 간식만 고르면 하루 식단을 짤 수 없어요
+  if (data.meals.length > 0 && !data.meals.some(m => m !== 'snack')) {
+    errors.push('끼니는 아침·점심·저녁 중 하나 이상 골라 주세요.');
+    badFields.push('meals');
   }
 
   // (2) 숫자가 비었거나 말이 안 되는 범위인지
@@ -178,7 +216,7 @@ function showErrors(errors, badFields) {
   document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
 
   badFields.forEach(key => {
-    if (CHOICE_INFO[key]) {
+    if (CHOICE_INFO[key] || MULTI_CHOICE_INFO[key]) {
       const group = document.querySelector('input[name="' + key + '"]').closest('.choices');
       group.classList.add('invalid');
     } else {
@@ -250,59 +288,157 @@ function goalName(data) {
 }
 const ACTIVITY_NAME = { sedentary: '거의 안 움직임', light: '가볍게', moderate: '보통', active: '많이' };
 
+// ---------------------------------------------------------------
+// 5-1. 표준 범위 구하기 (계산 방법은 config.js 5번에 설명)
+// ---------------------------------------------------------------
+function standardRangesFor(data) {
+  const r = CONFIG.standardRanges;
+  const mine = CONFIG.myStandardRanges;
+  const heightM = data.height / 100;
+
+  const stdWeight = r.standardBMI * heightM * heightM;          // 표준 체중
+  const [fatLow, fatHigh] = r.bodyFatPercent[data.sex];
+  const stdLean = stdWeight * (1 - (fatLow + fatHigh) / 2 / 100); // 표준 제지방량
+  const stdMuscle = stdLean * r.skeletalMuscleOfLeanMass;        // 표준 골격근량
+  const stdBmr = 370 + 21.6 * stdLean;                           // 표준 기초대사량
+
+  // 결과지 범위를 넣었으면 그걸 쓰고, 아니면 추정값을 써요
+  function pick(key, low, high) {
+    if (mine[key]) return { low: mine[key][0], high: mine[key][1], estimated: false };
+    return { low: low, high: high, estimated: true };
+  }
+
+  return {
+    // BMI 23은 "비만 전 단계"라서 표준에 넣지 않아요
+    bmi:            { low: r.bmi.underweight, high: r.bmi.overweight, highExclusive: true },
+    bodyFatPercent: { low: fatLow, high: fatHigh },
+    fatMass:        pick('fatMass', stdWeight * fatLow / 100, stdWeight * fatHigh / 100),
+    skeletalMuscle: pick('skeletalMuscle', stdMuscle * r.skeletalMuscleRange[0], stdMuscle * r.skeletalMuscleRange[1]),
+    bmr:            pick('bmr', stdBmr * r.bmrRange[0], stdBmr * r.bmrRange[1])
+  };
+}
+
+const ZONE_LABEL = { below: '표준 이하', normal: '표준', above: '표준 이상' };
+
+// 값이 어느 구간에 있는지: below / normal / above
+function zoneOf(value, r) {
+  if (value < r.low) return 'below';
+  if (r.highExclusive ? value >= r.high : value > r.high) return 'above';
+  return 'normal';
+}
+
+// 구간에 맞는 색: 표준 이상이 좋은 것(근육)과 나쁜 것(지방)을 구분해요
+function zoneBadgeClass(zone, higherIsBetter) {
+  if (zone === 'normal') return 'good';
+  if (zone === 'below') return 'warn';
+  return higherIsBetter ? 'good' : 'bad';
+}
+
+// ---------------------------------------------------------------
+// 5-2. 막대 그래프 (0~100%, 세 구간을 1/3씩)
+// ---------------------------------------------------------------
+function barPercent(value, r) {
+  const width = r.high - r.low;
+  const side = width * CONFIG.barSideRatio;   // 양옆 구간의 폭
+  let percent;
+  if (value < r.low) {
+    percent = (value - (r.low - side)) / side * 100 / 3;
+  } else if (value <= r.high) {
+    percent = 100 / 3 + (value - r.low) / width * 100 / 3;
+  } else {
+    percent = 200 / 3 + (value - r.high) / side * 100 / 3;
+  }
+  return Math.min(100, Math.max(2, percent));   // 최대 100%, 최소 2% (안 보일 정도로 짧아지지 않게)
+}
+
+function renderBar(bar) {
+  const r = bar.range;
+  const fmt = v => Number(v.toFixed(bar.digits)).toLocaleString();
+  const percent = barPercent(bar.value, r);
+  const fillClass = 'fill-' + zoneBadgeClass(bar.zone, bar.higherIsBetter);
+  const aboveClass = bar.higherIsBetter ? 'seg-good' : 'seg-bad';
+
+  return '<div class="range-bar">'
+    + '<div class="range-track">'
+    +   '<div class="seg seg-warn"></div><div class="seg seg-normal"></div><div class="seg ' + aboveClass + '"></div>'
+    +   '<div class="range-fill ' + fillClass + '" style="width:' + percent.toFixed(1) + '%"></div>'
+    + '</div>'
+    + '<div class="range-ticks">'
+    +   '<span style="left:33.33%">' + fmt(r.low) + '</span>'
+    +   '<span style="left:66.67%">' + fmt(r.high) + '</span>'
+    + '</div>'
+    + '<div class="range-labels"><span>표준 이하</span><span>표준</span><span>표준 이상</span></div>'
+    + '</div>';
+}
+
 function describeMetrics(data) {
   const ranges = CONFIG.standardRanges;
   const sexName = SEX_NAME[data.sex];
   const list = [];
 
+  const std = standardRangesFor(data);
+
+  // 표준 범위 글자: "18.5~23" / 추정이면 "약 6.4~12.7kg"
+  function rangeText(r, unit, digits) {
+    const fmt = v => Number(v.toFixed(digits)).toLocaleString();
+    return (r.estimated ? '약 ' : '') + fmt(r.low) + '~' + fmt(r.high) + unit;
+  }
+
+  // 판단 결과(표준 이하/표준/표준 이상)와 막대 그래프 정보를 묶어서 만들어요
+  function metric(name, value, valueText, r, higherIsBetter, texts, unit, digits) {
+    const zone = zoneOf(value, r);
+    return {
+      name: name,
+      value: valueText,
+      badge: [zoneBadgeClass(zone, higherIsBetter), ZONE_LABEL[zone]],
+      text: texts[zone] + ' (표준 ' + rangeText(r, unit, digits) + ')',
+      bar: { value: value, range: r, zone: zone, higherIsBetter: higherIsBetter, unit: unit, digits: digits }
+    };
+  }
+
   // BMI
   const b = ranges.bmi;
-  let bmiBadge, bmiText;
-  if (data.bmi < b.underweight)    { bmiBadge = ['warn', '저체중'];      bmiText = '키에 비해 체중이 적은 편이에요.'; }
-  else if (data.bmi < b.overweight){ bmiBadge = ['good', '정상'];        bmiText = '키에 비해 체중이 적당한 편이에요.'; }
-  else if (data.bmi < b.obese)     { bmiBadge = ['warn', '비만 전 단계']; bmiText = '키에 비해 체중이 조금 많은 편이에요.'; }
-  else                             { bmiBadge = ['bad', '비만'];          bmiText = '키에 비해 체중이 많은 편이에요.'; }
-  bmiText += ' (BMI ' + b.underweight + ' 미만 저체중, ' + b.overweight + ' 이상 비만 전 단계, ' + b.obese + ' 이상 비만 기준)';
-  list.push({ name: 'BMI', value: data.bmi, badge: bmiBadge, text: bmiText });
+  const bmiItem = metric('BMI', data.bmi, String(data.bmi), std.bmi, false, {
+    below:  '키에 비해 체중이 적은 편이에요 (저체중).',
+    normal: '키에 비해 체중이 적당한 편이에요.',
+    above:  data.bmi < b.obese
+      ? '키에 비해 체중이 조금 많은 편이에요 (비만 전 단계).'
+      : '키에 비해 체중이 많은 편이에요 (BMI ' + b.obese + ' 이상 비만).'
+  }, '', 1);
+  list.push(bmiItem);
 
   // 체지방률
-  const [fatMin, fatMax] = ranges.bodyFatPercent[data.sex];
-  let fatBadge, fatText;
-  if (data.bodyFatPercent < fatMin) {
-    fatBadge = ['warn', '낮은 편'];
-    fatText = '체지방률이 ' + sexName + ' 표준 범위(' + fatMin + '~' + fatMax + '%)보다 낮은 편이에요.';
-  } else if (data.bodyFatPercent <= fatMax) {
-    fatBadge = ['good', '표준'];
-    fatText = '체지방률이 ' + sexName + ' 표준 범위(' + fatMin + '~' + fatMax + '%) 안에 있어요.';
-  } else {
-    fatBadge = ['bad', '높은 편'];
-    fatText = '체지방률이 ' + sexName + ' 표준 범위(' + fatMin + '~' + fatMax + '%)보다 높은 편이에요.';
-  }
+  const fatItem = metric('체지방률', data.bodyFatPercent, data.bodyFatPercent + '%', std.bodyFatPercent, false, {
+    below:  '체지방률이 ' + sexName + ' 표준보다 낮은 편이에요.',
+    normal: '체지방률이 ' + sexName + ' 표준 범위 안에 있어요.',
+    above:  '체지방률이 ' + sexName + ' 표준보다 높은 편이에요.'
+  }, '%', 0);
   // BMI는 높은데 체지방률은 표준 이하라면: 근육이 많아서일 수 있어요
-  if (data.bmi >= b.overweight && data.bodyFatPercent <= fatMax) {
-    fatText += ' BMI는 높게 나왔지만 체지방은 많지 않아서, 근육이 많은 체형일 수 있어요.';
+  if (bmiItem.bar.zone === 'above' && fatItem.bar.zone !== 'above') {
+    fatItem.text += ' BMI는 높게 나왔지만 체지방은 많지 않아서, 근육이 많은 체형일 수 있어요.';
   }
-  list.push({ name: '체지방률', value: data.bodyFatPercent + '%', badge: fatBadge, text: fatText });
+  list.push(fatItem);
 
   // 체지방량
-  list.push({
-    name: '체지방량', value: data.fatMass + 'kg', badge: ['info', '참고'],
-    text: '몸에 있는 지방의 무게예요. 체중 ' + data.weight + 'kg 중 ' + data.fatMass + 'kg이 지방이에요.'
-  });
+  list.push(metric('체지방량', data.fatMass, data.fatMass + 'kg', std.fatMass, false, {
+    below:  '몸에 있는 지방의 무게예요. 체중 ' + data.weight + 'kg 중 ' + data.fatMass + 'kg이 지방이고, 표준보다 적은 편이에요.',
+    normal: '몸에 있는 지방의 무게예요. 체중 ' + data.weight + 'kg 중 ' + data.fatMass + 'kg이 지방이고, 표준 범위 안에 있어요.',
+    above:  '몸에 있는 지방의 무게예요. 체중 ' + data.weight + 'kg 중 ' + data.fatMass + 'kg이 지방이고, 표준보다 많은 편이에요.'
+  }, 'kg', 1));
 
   // 골격근량
-  const musclePercent = (data.skeletalMuscle / data.weight * 100).toFixed(1);
-  list.push({
-    name: '골격근량', value: data.skeletalMuscle + 'kg', badge: ['info', '참고'],
-    text: '팔다리·몸통을 움직이는 근육의 무게예요. 체중의 ' + musclePercent + '%가 골격근이에요. '
-      + '골격근의 표준 범위는 키에 따라 달라서 이 앱에서는 판단하지 않아요. 결과지의 표준 범위 막대를 함께 확인해 보세요.'
-  });
+  list.push(metric('골격근량', data.skeletalMuscle, data.skeletalMuscle + 'kg', std.skeletalMuscle, true, {
+    below:  '팔다리·몸통을 움직이는 근육의 무게예요. 키에 비해 근육이 적은 편이에요.',
+    normal: '팔다리·몸통을 움직이는 근육의 무게예요. 키에 비해 근육이 적당한 편이에요.',
+    above:  '팔다리·몸통을 움직이는 근육의 무게예요. 키에 비해 근육이 많은 편이에요.'
+  }, 'kg', 1));
 
   // 기초대사량
-  list.push({
-    name: '기초대사량', value: data.bmr + 'kcal', badge: ['info', '참고'],
-    text: '하루 종일 가만히 누워만 있어도 몸이 쓰는 에너지예요. 하루 칼로리 계산의 기준이 돼요.'
-  });
+  list.push(metric('기초대사량', data.bmr, data.bmr.toLocaleString() + 'kcal', std.bmr, true, {
+    below:  '가만히 있어도 몸이 쓰는 에너지예요. 표준보다 낮은 편인데, 근육이 적으면 낮게 나올 수 있어요.',
+    normal: '가만히 있어도 몸이 쓰는 에너지예요. 표준 범위 안에 있어요.',
+    above:  '가만히 있어도 몸이 쓰는 에너지예요. 표준보다 높은 편이에요. 근육이 많으면 높게 나와요.'
+  }, 'kcal', 0));
 
   // 내장지방 레벨 (선택)
   if (data.visceralFat !== null) {
@@ -349,8 +485,16 @@ function renderAnalysis(data, nutrition) {
     +   '<span class="metric-value">' + m.value + '</span>'
     + '</div>'
     + '<p class="metric-text">' + m.text + '</p>'
+    + (m.bar ? renderBar(m.bar) : '')   // 설명 바로 아래에 막대 그래프
     + '</div>'
   ).join('');
+
+  // 추정한 표준 범위가 있으면 안내 문구를 붙여요
+  const usesEstimate = metrics.some(m => m.bar && m.bar.range.estimated);
+  const estimateNote = usesEstimate
+    ? '<p class="footnote">"약"이 붙은 표준 범위는 키로 계산한 표준 체중을 기준으로 추정한 값이라 '
+      + '결과지와 조금 다를 수 있어요. 결과지의 표준 범위를 config.js의 myStandardRanges에 넣으면 그 값을 써요.</p>'
+    : '';
 
   // 계산 과정 설명
   const adjustText = n.adjust === 0
@@ -396,7 +540,7 @@ function renderAnalysis(data, nutrition) {
 
   document.getElementById('analysis-result').innerHTML =
     '<div class="card">'
-    + '<h2>내 몸 상태</h2>' + metricHtml
+    + '<h2>내 몸 상태</h2>' + metricHtml + estimateNote
     + '</div>'
 
     + '<div class="card">'
@@ -496,6 +640,57 @@ function updateTotalMinutes() {
 
 document.getElementById('workoutSets').addEventListener('input', updateTotalMinutes);
 document.getElementById('minutesPerSet').addEventListener('input', updateTotalMinutes);
+
+// ---------------------------------------------------------------
+// 10. "없음"을 고르면 다른 선택은 풀고, 다른 걸 고르면 "없음"을 풀어요
+// ---------------------------------------------------------------
+document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+  box.addEventListener('change', () => {
+    if (!box.checked) return;
+    const group = document.querySelectorAll('input[name="' + box.name + '"]');
+    group.forEach(other => {
+      if (other === box) return;
+      // 내가 "없음"이면 나머지를 전부 풀고, 내가 다른 거면 "없음"만 풀어요
+      if (box.hasAttribute('data-exclusive') || other.hasAttribute('data-exclusive')) {
+        other.checked = false;
+      }
+    });
+  });
+});
+
+// ---------------------------------------------------------------
+// 11. 운동 장소가 "집"일 때만 운동 기구 질문을 보여줘요
+// ---------------------------------------------------------------
+document.querySelectorAll('input[name="place"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.getElementById('equipment-field').hidden = readChoice('place') !== 'home';
+  });
+});
+
+// ---------------------------------------------------------------
+// 12. 고른 요일 수 보여주기
+// ---------------------------------------------------------------
+const DAY_NAME = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
+
+function updateDaysCount() {
+  const days = readChoices('workoutDays');
+  const box = document.getElementById('days-count');
+  if (days.length === 0) {
+    box.textContent = '요일을 고르면 일주일에 며칠 운동하는지 나와요.';
+    box.classList.remove('filled');
+    return;
+  }
+  const restDays = 7 - days.length;
+  box.innerHTML = '일주일에 <b>' + days.length + '일</b> 운동해요 ('
+    + days.map(d => DAY_NAME[d]).join('·') + ')'
+    + (restDays > 0 ? ', 쉬는 날 ' + restDays + '일'
+                    : '. 몸이 회복할 수 있게 운동표에는 쉬는 날을 꼭 넣을게요.');
+  box.classList.add('filled');
+}
+
+document.querySelectorAll('input[name="workoutDays"]').forEach(box => {
+  box.addEventListener('change', updateDaysCount);
+});
 
 // 고친 칸은 빨간 표시를 지워요
 document.getElementById('inbody-form').addEventListener('input', event => {

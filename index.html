@@ -82,13 +82,15 @@
             <input type="number" id="visceralFat" inputmode="numeric" placeholder="예: 7">
           </div>
           <div class="field">
-            <label class="label" for="abdominalFat">복부지방률</label>
+            <label class="label" for="abdominalFat">복부지방률 <small>(모르면 비우거나 0)</small></label>
             <input type="number" id="abdominalFat" inputmode="decimal" step="0.01" placeholder="예: 0.88">
           </div>
         </div>
 
         <div class="card">
           <h2>목표와 생활</h2>
+
+          <h3 class="sub">🎯 목표</h3>
           <div class="field">
             <span class="label">체중 목표</span>
             <div class="choices">
@@ -104,6 +106,7 @@
               <label><input type="radio" name="muscleGoal" value="gain"> 늘리기</label>
             </div>
           </div>
+          <h3 class="sub">🏃 생활과 운동</h3>
           <div class="field">
             <span class="label">평소 활동량</span>
             <div class="choices">
@@ -122,9 +125,19 @@
             </div>
           </div>
           <div class="field">
-            <label class="label" for="workoutDays">일주일에 운동할 수 있는 날 (일)</label>
-            <input type="number" id="workoutDays" inputmode="numeric" placeholder="예: 3">
+            <span class="label">운동할 수 있는 요일 <small>(여러 개 선택)</small></span>
+            <div class="choices days">
+              <label><input type="checkbox" name="workoutDays" value="mon"> 월</label>
+              <label><input type="checkbox" name="workoutDays" value="tue"> 화</label>
+              <label><input type="checkbox" name="workoutDays" value="wed"> 수</label>
+              <label><input type="checkbox" name="workoutDays" value="thu"> 목</label>
+              <label><input type="checkbox" name="workoutDays" value="fri"> 금</label>
+              <label><input type="checkbox" name="workoutDays" value="sat"> 토</label>
+              <label><input type="checkbox" name="workoutDays" value="sun"> 일</label>
+            </div>
           </div>
+          <!-- 고른 요일 수를 자동으로 보여줘요 -->
+          <p id="days-count" class="total-line">요일을 고르면 일주일에 며칠 운동하는지 나와요.</p>
           <div class="field">
             <label class="label" for="workoutSets">하루 운동 세트 수 (개)</label>
             <input type="number" id="workoutSets" inputmode="numeric" placeholder="예: 3">
@@ -142,8 +155,60 @@
               <label><input type="radio" name="place" value="home"> 집</label>
             </div>
           </div>
+          <!-- 운동 장소가 "집"일 때만 보여요 -->
+          <div class="field" id="equipment-field" hidden>
+            <span class="label">집에 있는 운동 기구 <small>(여러 개 선택)</small></span>
+            <div class="choices">
+              <label><input type="checkbox" name="equipment" value="none" data-exclusive> 없음</label>
+              <label><input type="checkbox" name="equipment" value="mat"> 요가매트</label>
+              <label><input type="checkbox" name="equipment" value="dumbbell"> 덤벨</label>
+              <label><input type="checkbox" name="equipment" value="band"> 밴드</label>
+              <label><input type="checkbox" name="equipment" value="pullupBar"> 철봉</label>
+              <label><input type="checkbox" name="equipment" value="kettlebell"> 케틀벨</label>
+            </div>
+          </div>
           <div class="field">
-            <label class="label" for="avoidFoods">못 먹는 음식 <small>(쉼표로 구분, 비워둬도 돼요)</small></label>
+            <span class="label">아프거나 불편한 부위 <small>(여러 개 선택)</small></span>
+            <div class="choices">
+              <label><input type="checkbox" name="injuries" value="none" data-exclusive> 없음</label>
+              <label><input type="checkbox" name="injuries" value="neck"> 목</label>
+              <label><input type="checkbox" name="injuries" value="shoulder"> 어깨</label>
+              <label><input type="checkbox" name="injuries" value="wrist"> 손목</label>
+              <label><input type="checkbox" name="injuries" value="back"> 허리</label>
+              <label><input type="checkbox" name="injuries" value="knee"> 무릎</label>
+              <label><input type="checkbox" name="injuries" value="ankle"> 발목</label>
+            </div>
+          </div>
+
+          <h3 class="sub">🍚 식사</h3>
+          <div class="field">
+            <span class="label">평소 챙겨 먹는 끼니 <small>(여러 개 선택)</small></span>
+            <div class="choices">
+              <label><input type="checkbox" name="meals" value="breakfast"> 아침</label>
+              <label><input type="checkbox" name="meals" value="lunch"> 점심</label>
+              <label><input type="checkbox" name="meals" value="dinner"> 저녁</label>
+              <label><input type="checkbox" name="meals" value="snack"> 간식</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">주로 어떻게 먹나요? <small>(여러 개 선택)</small></span>
+            <div class="choices">
+              <label><input type="checkbox" name="mealSources" value="cook"> 직접 요리</label>
+              <label><input type="checkbox" name="mealSources" value="cafeteria"> 구내식당</label>
+              <label><input type="checkbox" name="mealSources" value="convenience"> 편의점</label>
+              <label><input type="checkbox" name="mealSources" value="eatOut"> 외식·배달</label>
+            </div>
+          </div>
+          <div class="field">
+            <span class="label">식단 유형</span>
+            <div class="choices">
+              <label><input type="radio" name="dietType" value="normal"> 일반</label>
+              <label><input type="radio" name="dietType" value="vegetarian"> 채식 <small>(달걀·유제품 O)</small></label>
+              <label><input type="radio" name="dietType" value="vegan"> 완전 채식</label>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="avoidFoods">못 먹는 음식 <small>(알레르기·싫어하는 음식, 쉼표로 구분, 비워둬도 돼요)</small></label>
             <input type="text" id="avoidFoods" placeholder="예: 우유, 땅콩, 오이">
           </div>
         </div>
