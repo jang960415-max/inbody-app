@@ -556,7 +556,8 @@ function renderAnalysis(data, nutrition) {
     + '</p>'
     + '</div>'
 
-    + '<button type="button" class="primary-btn" onclick="showTab(\'diet\')">🍚 이 기준으로 식단 기록하기</button>';
+    + '<button type="button" class="primary-btn" onclick="showTab(\'diet\')">🍚 이 기준으로 식단 기록하기</button>'
+    + '<button type="button" class="primary-btn secondary-btn" onclick="showTab(\'records\')">📈 이 인바디 수치를 기록에 저장하기</button>';
 }
 
 
@@ -579,6 +580,7 @@ function runAnalysis(silent) {
   // 운동 계획표: 입력값이 바뀌었으면 계획표도 바꿀지 물어봐요 (앱을 열 때는 묻지 않아요) (workout.js)
   syncWorkoutPlan(data, !silent);
   renderWorkout();
+  renderRecords();   // 기록 탭의 "저장할 값" 미리보기도 새로 (records.js)
   return true;
 }
 
@@ -735,3 +737,4 @@ applyDefaults();
 // 기본값이 문제없으면 앱을 열자마자 분석해둬요
 // (식단 기록 화면에서 하루 권장 칼로리·영양소를 바로 쓸 수 있게)
 runAnalysis(true);
+renderRecords();   // 분석이 안 돼도 지난 기록은 볼 수 있게
