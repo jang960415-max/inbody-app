@@ -891,11 +891,17 @@ function renderExercise(item, dateKey) {
       + '<div class="ex-sub">' + item.removed + '</div></div></li>';
   }
   const checked = isChecked(dateKey, item.id);
+  // 맨 오른쪽 "▶ 동작" 버튼: 누르면 동작 설명과 애니메이션 (motion.js)
+  const targets = motionTargets(item);
+  const motionBtn = targets.length
+    ? '<button type="button" class="motion-btn" data-title="' + escapeHtml(item.name) + '" data-targets="'
+      + escapeHtml(JSON.stringify(targets)) + '" aria-label="' + escapeHtml(item.name) + ' 동작 보기">▶<span>동작</span></button>'
+    : '';
   return '<li class="ex-item' + (checked ? ' done' : '') + '">'
     + '<label class="ex-check"><input type="checkbox" data-id="' + item.id + '"' + (checked ? ' checked' : '') + '>'
     + '<div class="ex-body"><div class="ex-name">' + item.name + ' ' + tags + '</div>'
     + (detail.length ? '<div class="ex-detail">' + detail.join(' · ') + '</div>' : '')
-    + sub + '</div></label></li>';
+    + sub + '</div></label>' + motionBtn + '</li>';
 }
 
 // ----- 입력값을 어떻게 반영했는지 -----
@@ -1010,6 +1016,11 @@ function attachWorkoutEvents(box) {
     };
     row.addEventListener('click', pick);
     row.addEventListener('keydown', e => { if (e.key === 'Enter') pick(); });
+  });
+
+  // 동작 보기 버튼
+  box.querySelectorAll('.motion-btn').forEach(btn => {
+    btn.addEventListener('click', () => openMotion(btn.dataset.title, JSON.parse(btn.dataset.targets)));
   });
 
   // 운동 체크 (누르는 즉시 저장)

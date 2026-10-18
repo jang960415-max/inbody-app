@@ -486,6 +486,65 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
 .applied-list { margin: 10px 0 0; padding-left: 18px; font-size: 0.86rem; }
 .applied-list li { margin-bottom: 6px; }
 
+/* ---------- 동작 보기 (motion.js) ---------- */
+.ex-item { display: flex; align-items: center; gap: 6px; }
+.ex-item .ex-check { flex: 1; min-width: 0; }
+.motion-btn {
+  flex: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 46px; height: 46px;
+  border: 1px solid var(--main);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--main);
+  font-size: 0.85rem;
+  line-height: 1.1;
+  cursor: pointer;
+}
+.motion-btn span { font-size: 0.68rem; font-weight: 600; }
+.motion-btn:active { background: var(--main-light); }
+
+.motion-open { overflow: hidden; }
+.motion-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(20, 28, 36, 0.55);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.motion-card {
+  width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+  background: var(--card);
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .motion-overlay { align-items: center; }
+  .motion-card { border-radius: 16px; }
+}
+.motion-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.motion-head h2 { margin: 0; font-size: 1.05rem; }
+.motion-close { flex: none; width: 36px; height: 36px; border: none; border-radius: 50%; background: #eef1f4; font-size: 1rem; cursor: pointer; }
+.motion-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 12px 0 0; padding-bottom: 4px; }
+.motion-tab { flex: none; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 0.8rem; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.motion-tab.on { border-color: var(--main); background: var(--main-light); color: var(--main); font-weight: 600; }
+.motion-stage { position: relative; margin-top: 12px; background: #f7f9fa; border-radius: 12px; padding: 6px 6px 10px; }
+.motion-svg { width: 100%; height: auto; display: block; max-height: 260px; }
+.motion-phase { text-align: center; font-weight: 700; color: var(--main); font-size: 0.95rem; min-height: 1.4em; }
+.motion-play { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: #fff; cursor: pointer; }
+.motion-sub { margin: 14px 0 6px; font-size: 1rem; }
+.motion-steps { margin: 0; padding-left: 22px; font-size: 0.92rem; }
+.motion-steps li { margin-bottom: 4px; }
+.motion-cues { margin-top: 10px; background: var(--main-light); border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; }
+.motion-cues ul { margin: 4px 0 0; padding-left: 18px; }
+/* 막대 인형 */
+.mf-ground { stroke: #cfd6dd; stroke-width: 2; }
+.mf-near { stroke: var(--main); stroke-width: 5; stroke-linecap: round; }
+.mf-far  { stroke: #9cc5bb; stroke-width: 5; stroke-linecap: round; }
+.mf-head { fill: #fff; stroke: var(--main); stroke-width: 4; }
+.mf-prop { stroke: #b8c0c8; stroke-width: 4; }
+.mf-box  { fill: #e3e8ec; stroke: #b8c0c8; stroke-width: 1.5; }
+.mf-bar  { stroke: #6b7785; stroke-width: 5; stroke-linecap: round; }
+.mf-band { stroke: #e0a83a; stroke-width: 2; stroke-dasharray: 4 3; }
+
 /* ---------- 기록 (4단계) ---------- */
 .secondary-btn { margin-top: 10px; background: #fff; color: var(--main); border: 2px solid var(--main); }
 .rec-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
