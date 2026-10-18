@@ -574,6 +574,7 @@ function runAnalysis(silent) {
   data.totalWorkoutMinutes = data.workoutSets * data.minutesPerSet;   // 운동표에서 사용
   const nutrition = calculateNutrition(data);
   latestResult = { data, nutrition };
+  saveLastInput();
 
   renderAnalysis(data, nutrition);
   renderDiet();   // 식단 기록 화면의 목표값도 새로 맞춰요 (diet.js)
@@ -703,12 +704,33 @@ document.getElementById('inbody-form').addEventListener('input', event => {
 // ---------------------------------------------------------------
 // 13. 앱을 열 때 defaults.js 의 기본값을 입력 화면에 채워요
 // ---------------------------------------------------------------
-function applyDefaults() {
-  // defaults.js 파일이 없으면 빈 화면으로 시작해요
-  if (typeof DEFAULTS === 'undefined') return;
+// 분석에 성공한 입력값을 이 기기에 기억해둬요 (휴대폰에는 defaults.js 가 없어서)
+const LAST_INPUT_KEY = 'inbodyApp.lastInput';
 
-  for (const key in DEFAULTS) {
-    const value = DEFAULTS[key];
+function saveLastInput() {
+  const saved = {};
+  document.querySelectorAll('#inbody-form input').forEach(input => {
+    if (input.type === 'radio') {
+      if (input.checked) saved[input.name] = input.value;
+    } else if (input.type === 'checkbox') {
+      if (!saved[input.name]) saved[input.name] = [];
+      if (input.checked) saved[input.name].push(input.value);
+    } else if (input.id) {
+      saved[input.id] = input.value;
+    }
+  });
+  saveData(LAST_INPUT_KEY, saved);
+}
+
+function applyDefaults() {
+  // 마지막으로 분석한 값이 있으면 그걸, 없으면 defaults.js 값을 채워요
+  const lastInput = loadSaved(LAST_INPUT_KEY, null);
+  const source = lastInput || (typeof DEFAULTS !== 'undefined' ? DEFAULTS : null);
+  // 둘 다 없으면 빈 화면으로 시작해요
+  if (!source) return;
+
+  for (const key in source) {
+    const value = source[key];
     const field = document.getElementById(key);
 
     if (field) {

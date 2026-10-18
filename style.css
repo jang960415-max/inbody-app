@@ -32,6 +32,9 @@ body {
   background: var(--main);
   color: #fff;
   padding: 14px 16px;
+  /* 가로로 돌렸을 때 아이폰 노치에 가리지 않게 */
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
 }
 .app-header h1 { margin: 0; font-size: 1.15rem; }
 
@@ -515,6 +518,7 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
   background: var(--card);
   border-radius: 16px 16px 0 0;
   padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 @media (min-width: 640px) {
   .motion-overlay { align-items: center; }
@@ -620,6 +624,8 @@ input.invalid { border-color: var(--bad); background: var(--bad-bg); }
   max-width: 640px;
   margin: 8px auto 0;
   padding: 20px 16px 32px;
+  /* 아이폰 아래쪽 막대(홈 표시줄)에 글자가 가리지 않게 */
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
   text-align: center;
   font-size: 0.85rem;
   color: var(--muted);

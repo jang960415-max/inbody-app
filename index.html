@@ -3,8 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <!-- 휴대폰 화면 크기에 맞추는 설정 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>인바디 식단·운동 도우미</title>
+  <!-- 홈 화면에 추가했을 때 앱처럼 보이게 하는 설정 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2f7d6d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="인바디">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -237,5 +246,13 @@
   <script src="workout.js"></script>
   <script src="records.js"></script>
   <script src="app.js"></script>
+  <!-- 인터넷이 없어도 앱이 열리게 파일을 휴대폰에 저장해둬요 (sw.js) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
