@@ -707,7 +707,8 @@ function renderVelocityCard() {
     + (locked ? '🔒 계획표 고정됨' : '🔓 계획표 고정') + '</label>';
   const lockNote = locked
     ? '<div class="lock-note">🔒 ' + shortDate(workoutPlan.locked.since) + '부터 계획표가 고정돼 있어요. 입력값·구속 목표·이번 주 투구를 바꿔도, '
-      + '프로그램이 고쳐져도 계획표는 바뀌지 않아요. 운동 체크는 할 수 있어요.</div>'
+      + '프로그램이 고쳐져도 계획표는 바뀌지 않아요. 운동 체크는 할 수 있어요. '
+      + '<b>고정을 풀려면 오른쪽 위 "계획표 고정됨"을 한 번 더 누르세요.</b></div>'
     : '';
 
   return '<div class="card" id="velocity-card">'
@@ -972,16 +973,14 @@ function saveVelocity() {
 function attachWorkoutEvents(box) {
   document.getElementById('vel-save-btn').addEventListener('click', saveVelocity);
 
-  // 계획표 고정 켜기/끄기
+  // 계획표 고정 켜기/끄기 (누를 때마다 바로 바뀌어요)
   document.getElementById('plan-lock').addEventListener('change', e => {
-    if (e.target.checked) {
-      setLocked(true);
-    } else {
-      const ok = confirm('계획표 고정을 풀까요?\n\n풀면 오늘부터는 지금 입력값·구속 목표·이번 주 투구에 맞춰 계획이 다시 만들어질 수 있어요.\n(지난 날의 계획과 체크 기록은 그대로예요)');
-      if (!ok) { e.target.checked = true; return; }
-      setLocked(false);
-    }
+    setLocked(e.target.checked);
+    velocityMessage = e.target.checked
+      ? '🔒 계획표를 고정했어요. 한 번 더 누르면 풀려요.'
+      : '🔓 고정을 풀었어요. 오늘부터는 입력값·구속 목표·이번 주 투구에 맞춰 계획이 바뀔 수 있어요 (지난 날은 그대로).';
     renderWorkout();
+    velocityMessage = '';
   });
   document.getElementById('pitch-save-btn').addEventListener('click', savePitch);
   document.getElementById('week-pitch-count').addEventListener('keydown', e => {
